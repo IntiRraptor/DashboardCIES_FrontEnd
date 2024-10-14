@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from 'next/image';
 
 // Componente reutilizable para opciones de "Sí" y "No"
 const YesNoOptions = ({
@@ -90,7 +91,7 @@ export default function FormularioMantenimientoIncubadora({
       setCantidadAccesorios(details.accessoryInspections?.length || 1);
       setAccessoryInspections(details.accessoryInspections || []);
     }
-  }, [initialData, isEditMode]);
+  }, [initialData, isEditMode, equipment]);
 
   useEffect(() => {
     if (!isEditMode) {
@@ -161,11 +162,7 @@ export default function FormularioMantenimientoIncubadora({
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
       <div className="flex justify-between items-start mb-6">
         <div className="flex items-center">
-          <img
-            src="/placeholder.svg?height=50&width=50"
-            alt="Logo CIES"
-            className="h-12 w-auto mr-4"
-          />
+          <Image src="/placeholder.svg" alt="Logo CIES" width={50} height={50} className="h-12 w-auto mr-4" />
           <h1 className="text-xl font-bold">
             COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO
           </h1>

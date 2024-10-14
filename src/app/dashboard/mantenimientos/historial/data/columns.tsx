@@ -144,202 +144,204 @@ export const columns: ColumnDef<Maintenance>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const [isModalOpen, setModalOpen] = useState(false);
-      const [equipment, setEquipment] = useState<EquipmentDetail[]>([]);
-
-      useEffect(() => {
-        const fetchEquipment = async () => {
-          const equipmentData = await getEquipment();
-          setEquipment(equipmentData);
-        };
-        fetchEquipment();
-      }, []);
-
-      const initialData = row.original;
-
-      const type = row.original.tipo;
-      const details = JSON.parse(row.original.details);
-
-      const handleSubmitEdition = async (formData: any) => {
-        try {
-          console.log("Form Data:", formData);
-
-          if (!formData) {
-            throw new Error("No se ha enviado ningún formulario");
-          }
-
-          const formattedData = {
-            tipo: formData.tipo,
-            fechaInicio: row.original.fechaInicio,
-            fechaFin: row.original.fechaFin,
-            hora: formData.time,
-            region: formData.region,
-            equipo: formData.equipo,
-            estado: formData.estado,
-            costo: formData.costo && formData.costo > 0 ? formData.costo : 0,
-            details: JSON.stringify(formData),
-          };
-
-          console.log("Formatted Data Maintenance:", formattedData);
-
-          const response = await updateMantenimiento(row.original._id, formattedData);
-          toast({
-            title: "Mantenimiento Actualizado",
-            description: "El mantenimiento se ha actualizado correctamente.",
-          });
-          setModalOpen(false);
-          window.location.reload(); // Recarga la página actual
-        } catch (error) {
-          console.error("Error al actualizar mantenimiento:", error);
-          toast({
-            title: "Error",
-            description: "Hubo un problema al actualizar el mantenimiento.",
-            variant: "destructive",
-          });
-        }
-      };
-
-      const handleOpenModal = () => {
-        setModalOpen(true);
-      };
-
-      const handleCloseModal = () => {
-        setModalOpen(false);
-      };
-
-      const renderForm = () => {
-        if (type === "Capacitación") {
-          return (
-            <TrainingFormComponent
-              equipment={equipment}
-              onSubmit={handleSubmitEdition}
-              initialData={initialData}
-              isEditMode={true}
-            />
-          );
-        } else if (type === "Correctivo") {
-          return (
-            <CorrectiveMaintenanceFormComponent
-              equipment={equipment}
-              onSubmit={handleSubmitEdition}
-              initialData={initialData}
-              isEditMode={true}
-            />
-          );
-        } else if (type === "Preventivo") {
-          switch (details.typeForm) {
-            case "Protocolo de Mantenimiento Criocauterio Termoablación":
-              return (
-                <PreventivoForm
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo de Mantenimiento Aspirador Nebulizador":
-              return (
-                <FormularioProtocoloMantenimientoAspiradorNebulizador
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo de Mantenimiento Ecografos":
-              return (
-                <FormularioMantenimientoEcografo
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo de Mantenimiento Video Colposcopio":
-              return (
-                <FormularioMantenimientoColoscopio
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo Mantenimiento Torre Laparoscopia":
-              return (
-                <FormularioMantenimientoLaparoscopia
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo de Mantenimiento Electrobisturi":
-              return (
-                <FormularioMantenimientoElectrobisturi
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo de Mantenimiento Mesa QX y Lamp Cialitica":
-              return (
-                <FormularioMantenimientoMesaQuirurgica
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo de Mantenimiento Incubadora ServoCuna Fototerapia":
-              return (
-                <FormularioMantenimientoIncubadora
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo de Mantenimiento MaqAnes Vent CPAP.":
-              return (
-                <FormularioMantenimientoVentiladorCPAP
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            case "Protocolo de Mantenimiento Monitores_Fetal_ECG":
-              return (
-                <FormularioMantenimientoMonitor
-                  equipment={equipment}
-                  onSubmit={handleSubmitEdition}
-                  initialData={initialData}
-                  isEditMode={true}
-                />
-              );
-            default:
-              return null;
-          }
-        }
-        return null;
-      };
-
-      return (
-        <>
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0"
-            onClick={handleOpenModal}
-          >
-            Ver más
-          </Button>
-          <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-            {renderForm()}
-          </Modal>
-        </>
-      );
-    },
+    cell: ({ row }) => <CellComponent row={row} />,
   },
 ];
+
+const CellComponent = ({ row }) => {
+    const [isModalOpen, setModalOpen] = useState(false);
+    const [equipment, setEquipment] = useState<EquipmentDetail[]>([]);
+
+    useEffect(() => {
+        const fetchEquipment = async () => {
+            const equipmentData = await getEquipment();
+            setEquipment(equipmentData);
+        };
+        fetchEquipment();
+    }, []);
+
+    const initialData = row.original;
+
+    const type = row.original.tipo;
+    const details = JSON.parse(row.original.details);
+
+    const handleSubmitEdition = async (formData: any) => {
+        try {
+            console.log("Form Data:", formData);
+
+            if (!formData) {
+                throw new Error("No se ha enviado ningún formulario");
+            }
+
+            const formattedData = {
+                tipo: formData.tipo,
+                fechaInicio: row.original.fechaInicio,
+                fechaFin: row.original.fechaFin,
+                hora: formData.time,
+                region: formData.region,
+                equipo: formData.equipo,
+                estado: formData.estado,
+                costo: formData.costo && formData.costo > 0 ? formData.costo : 0,
+                details: JSON.stringify(formData),
+            };
+
+            console.log("Formatted Data Maintenance:", formattedData);
+
+            const response = await updateMantenimiento(row.original._id, formattedData);
+            toast({
+                title: "Mantenimiento Actualizado",
+                description: "El mantenimiento se ha actualizado correctamente.",
+            });
+            setModalOpen(false);
+            window.location.reload(); // Recarga la página actual
+        } catch (error) {
+            console.error("Error al actualizar mantenimiento:", error);
+            toast({
+                title: "Error",
+                description: "Hubo un problema al actualizar el mantenimiento.",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const handleOpenModal = () => {
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+    };
+
+    const renderForm = () => {
+        if (type === "Capacitación") {
+            return (
+                <TrainingFormComponent
+                    equipment={equipment}
+                    onSubmit={handleSubmitEdition}
+                    initialData={initialData}
+                    isEditMode={true}
+                />
+            );
+        } else if (type === "Correctivo") {
+            return (
+                <CorrectiveMaintenanceFormComponent
+                    equipment={equipment}
+                    onSubmit={handleSubmitEdition}
+                    initialData={initialData}
+                    isEditMode={true}
+                />
+            );
+        } else if (type === "Preventivo") {
+            switch (details.typeForm) {
+                case "Protocolo de Mantenimiento Criocauterio Termoablación":
+                    return (
+                        <PreventivoForm
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo de Mantenimiento Aspirador Nebulizador":
+                    return (
+                        <FormularioProtocoloMantenimientoAspiradorNebulizador
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo de Mantenimiento Ecografos":
+                    return (
+                        <FormularioMantenimientoEcografo
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo de Mantenimiento Video Colposcopio":
+                    return (
+                        <FormularioMantenimientoColoscopio
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo Mantenimiento Torre Laparoscopia":
+                    return (
+                        <FormularioMantenimientoLaparoscopia
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo de Mantenimiento Electrobisturi":
+                    return (
+                        <FormularioMantenimientoElectrobisturi
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo de Mantenimiento Mesa QX y Lamp Cialitica":
+                    return (
+                        <FormularioMantenimientoMesaQuirurgica
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo de Mantenimiento Incubadora ServoCuna Fototerapia":
+                    return (
+                        <FormularioMantenimientoIncubadora
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo de Mantenimiento MaqAnes Vent CPAP.":
+                    return (
+                        <FormularioMantenimientoVentiladorCPAP
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                case "Protocolo de Mantenimiento Monitores_Fetal_ECG":
+                    return (
+                        <FormularioMantenimientoMonitor
+                            equipment={equipment}
+                            onSubmit={handleSubmitEdition}
+                            initialData={initialData}
+                            isEditMode={true}
+                        />
+                    );
+                default:
+                    return null;
+            }
+        }
+        return null;
+    };
+
+    return (
+        <>
+            <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={handleOpenModal}
+            >
+                Ver más
+            </Button>
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+                {renderForm()}
+            </Modal>
+        </>
+    );
+};
