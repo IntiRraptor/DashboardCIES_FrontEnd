@@ -7,17 +7,17 @@ WORKDIR /app
 # Copia el archivo package.json y package-lock.json
 COPY package*.json ./
 
-# Instala las dependencias de producción
-RUN npm ci --only=production
+# Instala las dependencias
+RUN pnpm install
 
 # Copia todo el contenido del proyecto en el contenedor
 COPY . .
 
 # Construir el proyecto de Next.js
-RUN npm run build
+RUN pnpm run build
 
-# Exponer el puerto en el que corre la app de Next.js
+# Exponer el puerto en el que corre la app de Next.js (cambia si es otro puerto)
 EXPOSE 3000
 
 # Comando para iniciar la aplicación
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "run", "start"]
