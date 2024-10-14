@@ -40,38 +40,38 @@ export const columns: ColumnDef<EquipmentData>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "nombreaf", // Cambiar "name" por "nombreaf"
+    accessorKey: "name", // Cambiar "name" por "nombreaf"
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nombre Equipo" />
     ),
-    cell: ({ row }) => <div>{row.getValue("nombreaf")}</div>, // Cambiar "name" por "nombreaf"
+    cell: ({ row }) => <div>{row.getValue("name")}</div>, // Cambiar "name" por "nombreaf"
     enableSorting: true,
     enableHiding: false,
   },
   {
-    accessorKey: "codigoaf", // Cambiar "assetCode" por "codigoaf"
+    accessorKey: "assetCode", // Cambiar "assetCode" por "codigoaf"
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Código de Activo" />
     ),
-    cell: ({ row }) => <div>{row.getValue("codigoaf")}</div>, // Cambiar "assetCode" por "codigoaf"
+    cell: ({ row }) => <div>{row.getValue("assetCode")}</div>, // Cambiar "assetCode" por "codigoaf"
     enableSorting: true,
     enableHiding: true,
   },
   {
-    accessorKey: "descaf", // Añadir una columna para la descripción si es necesario
+    accessorKey: "model", // Añadir una columna para la descripción si es necesario
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Descripción" />
+      <DataTableColumnHeader column={column} title="Modelo" />
     ),
-    cell: ({ row }) => <div>{row.getValue("descaf")}</div>,
+    cell: ({ row }) => <div>{row.getValue("model")}</div>,
     enableSorting: true,
     enableHiding: true,
   },
   {
-    accessorKey: "aux1", // Añadir esta columna si aux1 es relevante
+    accessorKey: "brand", // Añadir esta columna si aux1 es relevante
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Auxiliar" />
+      <DataTableColumnHeader column={column} title="Marca" />
     ),
-    cell: ({ row }) => <div>{row.getValue("aux1")}</div>,
+    cell: ({ row }) => <div>{row.getValue("brand")}</div>,
     enableSorting: true,
     enableHiding: true,
   },

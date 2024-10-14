@@ -62,7 +62,7 @@ export default function MaintenanceForm() {
                 mode="range"
                 defaultMonth={dateRange.from}
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={(range) => setDateRange(range ? { from: range[0], to: range[1] } : { from: undefined, to: undefined })}
                 numberOfMonths={2}
               />
             </PopoverContent>

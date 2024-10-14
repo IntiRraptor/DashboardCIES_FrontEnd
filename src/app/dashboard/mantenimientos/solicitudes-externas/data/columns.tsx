@@ -8,6 +8,7 @@ import { ExternalRequest, externalRequestSchema } from "./schema"
 import { statuses, regionals } from "./data"
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions"
 import ActionButton from '../forms/action_button'; // Asegúrate de que la ruta sea correcta
+import { DataTableRowActionsExternal } from "@/components/data-table/data-table-row-actions-external"
 // Definición de las columnas de la tabla
 export const columns: ColumnDef<ExternalRequest>[] = [
   
@@ -89,7 +90,7 @@ export const columns: ColumnDef<ExternalRequest>[] = [
       <DataTableColumnHeader column={column} title="Acción" />
     ),
     cell: ({ row }) => {
-      const actionValue = row.getValue("action");
+      const actionValue = row.getValue<string>("action");
       return <ActionButton actionValue={actionValue} />;
     },
     enableSorting: false,
@@ -122,10 +123,9 @@ export const columns: ColumnDef<ExternalRequest>[] = [
   {
     id: "actions",
     cell: ({ row }) => (
-      <DataTableRowActions
+      <DataTableRowActionsExternal
         row={row}
         labels={statuses}
-        schema={externalRequestSchema}
         labelField="estado"  // Cambio aquí
       />
     ),

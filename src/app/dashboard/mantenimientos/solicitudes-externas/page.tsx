@@ -4,30 +4,12 @@ import { DataTable } from "@/components/data-table/data-table"
 import { ExternalRequest,externalRequestSchema } from "./data/schema"
 import { statuses, regionals } from "./data/data"
 import { z } from "zod"
+import { getExternalRequests } from "@/lib/apiService"
 export const metadata: Metadata = {
   title: "Solicitudes Externas",
   description: "Gestión de solicitudes externas de mantenimiento.",
 }
 
-// Simulate a database read for external requests.
-async function getExternalRequests(page = 1, limit = 10, region = ""): Promise<ExternalRequest[]> {
-  
-  const response = await fetch(`http://localhost:4000/api/solicitudes-externas`);
-
-  if (!response.ok) {
-    throw new Error('Error fetching solicitudes');
-  }
-
-  const data = await response.json();
-  
-  // Log the data to see what exactly you're receiving
-  console.log("Data received from backend:", JSON.stringify(data, null, 2));
-
-  // Validate using Zod
-  const parsedData = z.array(externalRequestSchema).parse(data.solicitudes);
-
-  return parsedData;
-}
 export default async function SolicitudesExternasPage() {
   const externalRequests = await getExternalRequests();
 

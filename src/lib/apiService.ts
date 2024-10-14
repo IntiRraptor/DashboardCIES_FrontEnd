@@ -1,5 +1,8 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
+import { z } from "zod";
+import { externalRequestSchema } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
+import { ExternalRequest } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
 
 // Mantenimientos
 export const getMantenimientos = async (filters = {}) => {
@@ -153,7 +156,6 @@ export const getEquipment = async (): Promise<EquipmentDetail[]> => {
       }
 
       const data = await response.json();
-      console.log("Fetched data:", data);
 
       if (!data.results || !Array.isArray(data.results)) {
         throw new Error(
@@ -175,4 +177,24 @@ export const getEquipment = async (): Promise<EquipmentDetail[]> => {
 
   console.log(`Total de equipos obtenidos: ${allEquipment.length}`);
   return allEquipment;
+};
+
+export const getExternalRequests = async (): Promise<ExternalRequest[]> => {
+  const response = await fetch(`${API_URL}/solicitudes-externas`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-cache",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error fetching solicitudes");
+  }
+
+  const data = await response.json();
+
+  // Log the data to see what exactly you're receiving
+  console.log("Data received from backend:", data);
+  return data.solicitudes;
 };

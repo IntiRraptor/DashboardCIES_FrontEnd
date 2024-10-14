@@ -8,6 +8,7 @@ export const externalRequestSchema = z.object({
   codigoActivo: z.string(),
   ticket: z.string(),
   estado: z.string(),
+  fechaAccion: z.string(),
   archivos: z.array(z.string()), // Si 'archivos' es un array de strings (rutas de archivos)
 })
 export type ExternalRequest = z.infer<typeof externalRequestSchema>
