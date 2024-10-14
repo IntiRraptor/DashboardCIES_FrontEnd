@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { RadioGroup } from "../ui/radio-group";
 import { Textarea } from "../ui/textarea";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
@@ -196,17 +195,14 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
           <h1 className="text-2xl font-bold">
             RECIBO DE MANTENIMIENTO PREVENTIVO PLANIFICADO
           </h1>
-          <RadioGroup
-            value={tipoEquipo}
-            onValueChange={(value) => setTipoEquipo(value)}
-            className="flex justify-center space-x-4 mt-2"
-          >
+          <div className="flex justify-center space-x-4 mt-2">
             <div className="flex items-center space-x-2">
               <input
                 type="radio"
                 id="aspiradora"
                 name="tipoEquipo"
-                value="aspiradora"
+                value="Aspiradora"
+                checked={tipoEquipo === "Aspiradora"}
                 onChange={() => setTipoEquipo("Aspiradora")}
               />
               <label htmlFor="aspiradora">Aspiradora</label>
@@ -216,12 +212,13 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
                 type="radio"
                 id="nebulizador"
                 name="tipoEquipo"
-                value="nebulizador"
+                value="Nebulizador"
+                checked={tipoEquipo === "Nebulizador"}
                 onChange={() => setTipoEquipo("Nebulizador")}
               />
               <label htmlFor="nebulizador">Nebulizador</label>
             </div>
-          </RadioGroup>
+          </div>
         </div>
         <div className="text-right">
           <div className="mb-2">
