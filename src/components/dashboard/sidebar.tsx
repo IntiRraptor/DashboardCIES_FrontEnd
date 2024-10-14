@@ -25,6 +25,7 @@ export function Sidebar({ className }: SidebarProps) {
 
   // Function to determine if the button matches the current path
   const isActive = (route: string) => {
+    if (!pathname) return false;
     // Ensure that both paths end with a slash for consistent comparison
     const formattedPathname = pathname.endsWith("/")
       ? pathname
