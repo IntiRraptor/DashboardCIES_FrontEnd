@@ -1,0 +1,58 @@
+[
+    {
+      "id": "ER001",
+      "name": "Dr. Melissa Cáceres",
+      "regional": "La Paz",
+      "arrivalDate": "10/02/24 - 15:32",
+      "assetCode": "A74 - 981A2",
+      "ticket": "A1",
+      "action": "Gestionar",
+      "actionDate": "N/A",
+      "status": "Sin estado"
+    },
+    {
+      "id": "ER002",
+      "name": "Dr. Javier Prado",
+      "regional": "Cbba",
+      "arrivalDate": "10/02/24 - 15:32",
+      "assetCode": "A74 - 981A2",
+      "ticket": "A2",
+      "action": "Gestionar",
+      "actionDate": "N/A",
+      "status": "Sin estado"
+    },
+    {
+      "id": "ER003",
+      "name": "Dr. Juan Cruz",
+      "regional": "Sucre",
+      "arrivalDate": "10/02/24 - 15:32",
+      "assetCode": "A74 - 981A2",
+      "ticket": "A3",
+      "action": "Gestionar",
+      "actionDate": "N/A",
+      "status": "Sin estado"
+    },
+    {
+      "id": "ER004",
+      "name": "Dr. Pedro Quispe",
+      "regional": "Potosí",
+      "arrivalDate": "10/02/24 - 15:32",
+      "assetCode": "A74 - 981A2",
+      "ticket": "A4",
+      "action": "Gestionar",
+      "actionDate": "N/A",
+      "status": "Sin estado"
+    },
+    {
+      "id": "ER005",
+      "name": "Dr. Karen Rocha",
+      "regional": "Santa Cruz",
+      "arrivalDate": "10/02/24 - 15:32",
+      "assetCode": "A74 - 981A2",
+      "ticket": "A5",
+      "action": "Gestionar",
+      "actionDate": "N/A",
+      "status": "Sin estado"
+    }
+  ]
+  
