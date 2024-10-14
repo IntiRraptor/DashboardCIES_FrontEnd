@@ -12,6 +12,16 @@ export const metadata: Metadata = {
 export default async function EquiposMedicosPage() {
   const equipment = await getEquipment();
 
+  // Mapear los datos para que coincidan con el tipo esperado
+  const mappedEquipment = equipment.map(item => ({
+    id: item.codigoaf, // Asignar un valor único para 'id'
+    name: item.nombreaf,
+    brand: item.aux1, // Asumiendo que 'aux1' es la marca
+    model: item.descaf, // Asumiendo que 'descaf' es el modelo
+    assetCode: item.codigoaf,
+    category: "default", // Asignar un valor por defecto o derivar de otra propiedad
+  }));
+
   return (
     <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
       <div className="flex items-center justify-between space-y-2">
@@ -23,7 +33,7 @@ export default async function EquiposMedicosPage() {
         </div>
       </div>
       <DataTable
-        data={equipment}
+        data={mappedEquipment} // Usar los datos mapeados
         columns={columns}
         filterColumn="name"
         filterPlaceholder="Filtrar equipos..."

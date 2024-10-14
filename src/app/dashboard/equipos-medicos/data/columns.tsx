@@ -7,7 +7,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 
-export const columns: ColumnDef<Equipment>[] = [
+// Define la interfaz para los datos de equipo
+interface EquipmentData {
+  id: string;
+  assetCode: string;
+  name: string;
+  brand: string;
+  model: string;
+  category: string;
+}
+
+export const columns: ColumnDef<EquipmentData>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -71,10 +81,8 @@ export const columns: ColumnDef<Equipment>[] = [
       <DataTableRowActions
         row={row}
         labels={categories}
-        schema={equipmentSchema}
         labelField="category" // Ajustar si "category" se refiere a algo en los datos
       />
     ),
   },
 ];
-    

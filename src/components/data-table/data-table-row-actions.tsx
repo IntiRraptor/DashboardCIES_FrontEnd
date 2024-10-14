@@ -17,33 +17,30 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-// Define la interfaz para los datos de equipo, sin la validación de zod
+// Define la interfaz para los datos de equipo
 interface EquipmentData {
-  codigoaf: string;
-  codigoaf1: string | null;
-  codigoaf2: string | null;
-  nombreaf: string;
-  descaf: string;
-  aux1: string;
+  id: string;
+  assetCode: string;
+  name: string;
+  brand: string;
+  model: string;
+  category: string;
 }
 
-// Tipo para las claves válidas en EquipmentData
 type EquipmentField = keyof EquipmentData;
 
 interface DataTableRowActionsProps {
   row: Row<EquipmentData>;
   labels: { value: string; label: string }[];
   labelField: EquipmentField;
-} 
+}
 
 export function DataTableRowActions({
   row,
   labels,
   labelField,
 }: DataTableRowActionsProps) {
-  console.log("Row original data:", JSON.stringify(row.original, null, 2)); // Imprimir los datos originales
-
-  const value = row.original[labelField as keyof EquipmentData] || undefined; // Asegurarse de que el acceso sea seguro
+  const value = row.original[labelField];
 
   return (
     <DropdownMenu>
