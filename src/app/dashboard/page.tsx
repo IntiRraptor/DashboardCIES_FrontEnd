@@ -22,18 +22,28 @@ export default function DashboardPage() {
   }, []);
 
   const reportesGenerados = maintenanceHistory.length;
-  const reportesFallidos = maintenanceHistory.filter(
-    (m: any) => m.estado === "Fallido"
-  ).length;
-  const reportesEnviados = maintenanceHistory.filter(
-    (m: any) => m.estado === "Enviado"
-  ).length;
-  const reportesDeportados = maintenanceHistory.filter(
-    (m: any) => m.estado === "Deportado"
-  ).length;
   const reportesProgramados = maintenanceHistory.filter(
     (m: any) => m.estado === "Programado"
   ).length;
+
+  // New metrics calculations
+  const correctivos = maintenanceHistory.filter(
+    (m: any) => m.tipo === "Correctivo"
+  ).length;
+  const preventivos = maintenanceHistory.filter(
+    (m: any) => m.tipo === "Preventivo"
+  ).length;
+  const ratioCorrectivoPreventivo =
+    preventivos > 0 ? (correctivos / preventivos).toFixed(2) : "N/A";
+
+  // Updated metric calculation
+  const preventivosCompletados = maintenanceHistory.filter(
+    (m: any) => m.tipo === "Preventivo" && m.estado === "Completado"
+  ).length;
+  const porcentajePreventivoCompletado =
+    reportesProgramados > 0
+      ? ((preventivosCompletados / reportesProgramados) * 100).toFixed(2)
+      : "N/A";
 
   return (
     <div className="flex-col space-y-4 p-8">
@@ -60,45 +70,38 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Reportes Fallidos
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{reportesFallidos}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Reportes Enviados
-            </CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{reportesEnviados}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Reportes Deportados
-            </CardTitle>
-            <UserX className="h-4 w-4 text-muted-foreground text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{reportesDeportados}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
               Reportes Programados
             </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{reportesProgramados}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Ratio Correctivo vs. Preventivo
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {ratioCorrectivoPreventivo}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Preventivo Completado
+            </CardTitle>
+            <Send className="h-4 w-4 text-muted-foreground text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {porcentajePreventivoCompletado}%
+            </div>
           </CardContent>
         </Card>
       </div>

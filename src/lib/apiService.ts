@@ -1,4 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const EQUIPMENT_API_URL = process.env.EQUIPMENT_API_URL;
+const token = process.env.TOKEN_EQUIPMENT;
 
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { ExternalRequest } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
@@ -6,7 +8,7 @@ import { ExternalRequest } from "@/app/dashboard/mantenimientos/solicitudes-exte
 // Mantenimientos
 export const getMantenimientos = async (filters = {}) => {
   try {
-    const response = await fetch(`${API_URL}/mantenimientos`, {
+    const response = await fetch(`${API_URL}/api/mantenimientos`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -32,7 +34,7 @@ export const getMantenimientos = async (filters = {}) => {
 };
 
 export const createMantenimiento = async (mantenimientoData: any) => {
-  const response = await fetch(`${API_URL}/mantenimientos`, {
+  const response = await fetch(`${API_URL}/api/mantenimientos`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -51,7 +53,7 @@ export const updateMantenimiento = async (
   id: string,
   mantenimientoData: any
 ) => {
-  const response = await fetch(`${API_URL}/mantenimientos/${id}`, {
+  const response = await fetch(`${API_URL}/api/mantenimientos/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -65,7 +67,7 @@ export const updateMantenimiento = async (
 };
 
 export const deleteMantenimiento = async (id: string) => {
-  const response = await fetch(`${API_URL}/mantenimientos/${id}`, {
+  const response = await fetch(`${API_URL}/api/mantenimientos/${id}`, {
     method: "DELETE",
   });
   if (!response.ok) {
@@ -78,7 +80,7 @@ export const deleteMantenimiento = async (id: string) => {
 export const getSolicitudesExternas = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
   const response = await fetch(
-    `${API_URL}/solicitudes-externas?${queryParams}`
+    `${API_URL}/api/solicitudes-externas?${queryParams}`
   );
   if (!response.ok) {
     throw new Error("Error fetching solicitudes externas");
@@ -87,7 +89,7 @@ export const getSolicitudesExternas = async (filters = {}) => {
 };
 
 export const createSolicitudExterna = async (solicitudData: any) => {
-  const response = await fetch(`${API_URL}/solicitudes-externas`, {
+  const response = await fetch(`${API_URL}/api/solicitudes-externas`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -104,7 +106,7 @@ export const updateSolicitudExterna = async (
   id: string,
   solicitudData: any
 ) => {
-  const response = await fetch(`${API_URL}/solicitudes-externas/${id}`, {
+  const response = await fetch(`${API_URL}/api/solicitudes-externas/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -118,7 +120,7 @@ export const updateSolicitudExterna = async (
 };
 
 export const deleteSolicitudExterna = async (id: string) => {
-  const response = await fetch(`${API_URL}/solicitudes-externas/${id}`, {
+  const response = await fetch(`${API_URL}/api/solicitudes-externas/${id}`, {
     method: "DELETE",
   });
   if (!response.ok) {
@@ -128,19 +130,14 @@ export const deleteSolicitudExterna = async (id: string) => {
 };
 
 export const getEquipment = async (): Promise<EquipmentDetail[]> => {
-  const equipmentApiUrl =
-    "https://medibit.cies.org.bo/legacy/afciesrednacional/equiposmedicos";
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI5MDAyMTc5LCJpYXQiOjE3Mjg3ODYxNzksImp0aSI6ImFkN2I0ZTZhYzRlMTQzZjk4MzZlYTZjNTIwNzBmY2M2IiwidXNlcl9pZCI6MzcyfQ.Ih_nvzSDUBIP-QMULlYP_Q4vURheAtwqb6UACsPj6fo";
-
   let allEquipment: EquipmentDetail[] = [];
-  let nextUrl: string | null = `${equipmentApiUrl}?page=1`;
+  let nextUrl: string | null = `${EQUIPMENT_API_URL}?page=1`;
 
   while (nextUrl) {
     try {
       const response = await fetch(nextUrl, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json; charset=utf-8",
           Authorization: `Bearer ${token}`,
           regional: "17",
         },
@@ -179,7 +176,7 @@ export const getEquipment = async (): Promise<EquipmentDetail[]> => {
 };
 
 export const getExternalRequests = async (): Promise<ExternalRequest[]> => {
-  const response = await fetch(`${API_URL}/solicitudes-externas`, {
+  const response = await fetch(`${API_URL}/api/solicitudes-externas`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json; charset=utf-8",
