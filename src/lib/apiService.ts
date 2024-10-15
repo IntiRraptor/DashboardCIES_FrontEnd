@@ -1,7 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
-import { z } from "zod";
-import { externalRequestSchema } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
 import { ExternalRequest } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
 
 // Mantenimientos

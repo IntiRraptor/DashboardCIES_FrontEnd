@@ -1,9 +1,7 @@
 import { Metadata } from "next"
 import { columns } from "./data/columns"
 import { DataTable } from "@/components/data-table/data-table"
-import { ExternalRequest,externalRequestSchema } from "./data/schema"
 import { statuses, regionals } from "./data/data"
-import { z } from "zod"
 import { getExternalRequests } from "@/lib/apiService"
 export const metadata: Metadata = {
   title: "Solicitudes Externas",
