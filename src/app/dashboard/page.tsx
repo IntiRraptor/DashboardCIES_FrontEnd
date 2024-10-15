@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, FileText, Send, UserX } from "lucide-react";
 import { Metadata } from "next";
+import { useEffect } from "react";
+import { useState } from "react";
 
 export const metadata: Metadata = {
   title: "Dashboard CIES",
@@ -13,19 +15,29 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const data = await getMantenimientos();
-  console.log("Mantenimientos Data: ", data.length);
-  const reportesGenerados = data.length;
-  const reportesFallidos = data.filter(
+  const [maintenanceHistory, setMaintenanceHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchMaintenanceHistory = async () => {
+      const data = await getMantenimientos();
+      setMaintenanceHistory(data);
+    };
+
+    fetchMaintenanceHistory();
+  }, []);
+
+  console.log("Mantenimientos Data: ", maintenanceHistory.length);
+  const reportesGenerados = maintenanceHistory.length;
+  const reportesFallidos = maintenanceHistory.filter(
     (m: any) => m.estado === "Fallido"
   ).length;
-  const reportesEnviados = data.filter(
+  const reportesEnviados = maintenanceHistory.filter(
     (m: any) => m.estado === "Enviado"
   ).length;
-  const reportesDeportados = data.filter(
+  const reportesDeportados = maintenanceHistory.filter(
     (m: any) => m.estado === "Deportado"
   ).length;
-  const reportesProgramados = data.filter(
+  const reportesProgramados = maintenanceHistory.filter(
     (m: any) => m.estado === "Programado"
   ).length;
 

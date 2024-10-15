@@ -3,13 +3,24 @@ import { columns } from "./data/columns"
 import { DataTable } from "@/components/data-table/data-table"
 import { statuses, regionals } from "./data/data"
 import { getExternalRequests } from "@/lib/apiService"
+import { useState, useEffect } from "react"
+
 export const metadata: Metadata = {
   title: "Solicitudes Externas",
   description: "Gestión de solicitudes externas de mantenimiento.",
 }
 
 export default async function SolicitudesExternasPage() {
-  const externalRequests = await getExternalRequests();
+  const [externalRequests, setExternalRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchExternalRequests = async () => {
+      const data = await getExternalRequests();
+      setExternalRequests(data);
+    };
+
+    fetchExternalRequests();
+  }, []);
 
   // Verifica que externalRequests tenga datos antes de pasarlos a DataTable
   console.log("External Requests to render:", externalRequests);

@@ -3,6 +3,7 @@ import { columns } from "./data/columns";
 import { DataTable } from "@/components/data-table/data-table";
 import { maintenanceTypes, regionals, statuses } from "./data/data";
 import { getMantenimientos } from "@/lib/apiService";
+import { useEffect, useState } from "react";
 
 export const metadata: Metadata = {
   title: "Historial mantenimientos",
@@ -20,7 +21,16 @@ export default async function HistorialMantenimientosPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const maintenanceHistory = await getMantenimientos();
+  const [maintenanceHistory, setMaintenanceHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchMaintenanceHistory = async () => {
+      const data = await getMantenimientos();
+      setMaintenanceHistory(data);
+    };
+
+    fetchMaintenanceHistory();
+  }, []);
 
   return (
     <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
