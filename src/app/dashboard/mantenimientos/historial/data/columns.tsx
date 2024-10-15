@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Maintenance } from "../data/schema";
 import { maintenanceTypes, regionals, statuses } from "../data/data";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PreventivoForm } from "@/components/forms/preventivo-form";
 import { TrainingFormComponent } from "@/components/forms/training-form";
 import { CorrectiveMaintenanceFormComponent } from "@/components/forms/corrective-maintenance-form";
@@ -25,6 +25,7 @@ import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { getEquipment, updateMantenimiento } from "@/lib/apiService";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
 import { toast } from "@/components/ui/use-toast";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 export const columns: ColumnDef<Maintenance>[] = [
   {
@@ -133,10 +134,49 @@ export const columns: ColumnDef<Maintenance>[] = [
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     cell: ({ row }) => {
-      const status = statuses.find(
+      const currentStatus = statuses.find(
         (status) => status.value === row.getValue("estado")
       );
-      return <div>{status ? status.label : row.getValue("estado")}</div>;
+
+      const handleStatusChange = useCallback(async (newStatus) => {
+        try {
+          const formattedData = {
+            ...row.original,
+            estado: newStatus,
+          };
+
+          await updateMantenimiento(row.original._id, formattedData);
+          toast({
+            title: "Estado Actualizado",
+            description: "El estado del mantenimiento se ha actualizado correctamente.",
+          });
+
+          // Refresh the data
+          window.location.reload();
+        } catch (error) {
+          console.error("Error al actualizar el estado:", error);
+          toast({
+            title: "Error",
+            description: "Hubo un problema al actualizar el estado.",
+            variant: "destructive",
+          });
+        }
+      }, [row]);
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost">{currentStatus ? currentStatus.label : row.getValue("estado")}</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {statuses.map((status) => (
+              <DropdownMenuItem key={status.value} onSelect={() => handleStatusChange(status.value)}>
+                {status.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -144,6 +184,9 @@ export const columns: ColumnDef<Maintenance>[] = [
   },
   {
     id: "actions",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Acciones" />
+    ),
     cell: ({ row }) => <CellComponent row={row} />,
   },
 ];

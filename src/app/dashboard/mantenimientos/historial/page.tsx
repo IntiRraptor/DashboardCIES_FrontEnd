@@ -43,16 +43,18 @@ export default function HistorialMantenimientosPage({
       <DataTable
         data={maintenanceHistory}
         columns={columns}
-        filterColumn="assetCode"
+        filterColumn="equipo"
         filterPlaceholder="Buscar por Cód. Activo"
         facetedFilters={[
           {
-            column: "type",
+            column: "tipo",
             title: "Tipo de Mantenimiento",
-            options: maintenanceTypes.map((type) => ({
-              label: type.label,
-              value: type.value,
-            })),
+            options: [
+              { label: "Correctivo", value: "correctivo" },
+              { label: "Capacitación", value: "capacitacion" },
+              { label: "Instalación", value: "instalacion" },
+              { label: "Preventivo", value: "preventivo" },
+            ],
           },
           {
             column: "regional",
@@ -63,8 +65,8 @@ export default function HistorialMantenimientosPage({
             })),
           },
           {
-            column: "status",
-            title: "Estado",
+            column: "estado",
+            title: "Estados",
             options: statuses.map((status) => ({
               label: status.label,
               value: status.value,

@@ -86,6 +86,7 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    enableColumnFilters: true,
   })
 
   return (
@@ -152,3 +153,4 @@ export function DataTable<TData, TValue>({
     </div>
   )
 }
+
