@@ -1,16 +1,12 @@
-import { Metadata } from "next"
+"use client";
+
 import { columns } from "./data/columns"
 import { DataTable } from "@/components/data-table/data-table"
 import { statuses, regionals } from "./data/data"
 import { getExternalRequests } from "@/lib/apiService"
 import { useState, useEffect } from "react"
 
-export const metadata: Metadata = {
-  title: "Solicitudes Externas",
-  description: "Gestión de solicitudes externas de mantenimiento.",
-}
-
-export default async function SolicitudesExternasPage() {
+export default function SolicitudesExternasPage() {
   const [externalRequests, setExternalRequests] = useState<any[]>([]);
 
   useEffect(() => {

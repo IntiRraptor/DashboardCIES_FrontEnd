@@ -1,3 +1,5 @@
+"use client";
+
 import { getMantenimientos } from "@/lib/apiService";
 import { CalendarDateRangePicker } from "@/components/dashboard/date-range-picker";
 import { NotificationCard } from "@/components/dashboard/notification-card";
@@ -5,16 +7,9 @@ import { Overview } from "@/components/dashboard/overview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, FileText, Send, UserX } from "lucide-react";
-import { Metadata } from "next";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export const metadata: Metadata = {
-  title: "Dashboard CIES",
-  description: "Dashboard for CIES application.",
-};
-
-export default async function DashboardPage() {
+export default function DashboardPage() {
   const [maintenanceHistory, setMaintenanceHistory] = useState<any[]>([]);
 
   useEffect(() => {
@@ -26,7 +21,6 @@ export default async function DashboardPage() {
     fetchMaintenanceHistory();
   }, []);
 
-  console.log("Mantenimientos Data: ", maintenanceHistory.length);
   const reportesGenerados = maintenanceHistory.length;
   const reportesFallidos = maintenanceHistory.filter(
     (m: any) => m.estado === "Fallido"

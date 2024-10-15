@@ -1,14 +1,10 @@
-import { Metadata } from "next";
+"use client";
+
 import { columns } from "./data/columns";
 import { DataTable } from "@/components/data-table/data-table";
 import { maintenanceTypes, regionals, statuses } from "./data/data";
 import { getMantenimientos } from "@/lib/apiService";
 import { useEffect, useState } from "react";
-
-export const metadata: Metadata = {
-  title: "Historial mantenimientos",
-  description: "Historial de mantenimientos de equipos médicos.",
-};
 
 type SearchParams = {
   tipo?: string;
@@ -16,7 +12,7 @@ type SearchParams = {
   estado?: string;
 };
 
-export default async function HistorialMantenimientosPage({
+export default function HistorialMantenimientosPage({
   searchParams,
 }: {
   searchParams: SearchParams;
