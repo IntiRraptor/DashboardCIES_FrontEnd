@@ -1,17 +1,24 @@
-import { Metadata } from "next";
+"use client";
+
 import { columns } from "./data/columns";
 import { DataTable } from "@/components/data-table/data-table";
 import { categories, brands, models } from "./data/data";
 import { getEquipment } from "@/lib/apiService";
+import { useEffect, useState } from "react";
+import { EquipmentDetail } from "./data/schema";
 
-export const metadata: Metadata = {
-  title: "Equipos Médicos",
-  description: "Gestión de equipos médicos usando Tanstack Table.",
-};
+export default function EquiposMedicosPage() {
+  const [equipment, setEquipment] = useState<EquipmentDetail[]>([]);
 
-export default async function EquiposMedicosPage() {
-  const equipment = await getEquipment();
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      const data = await getEquipment();
+      setEquipment(data);
+    };
 
+    fetchEquipment();
+  }, []);
+  
   // Mapear los datos para que coincidan con el tipo esperado
   const mappedEquipment = equipment.map(item => ({
     id: item.codigoaf, // Asignar un valor único para 'id'

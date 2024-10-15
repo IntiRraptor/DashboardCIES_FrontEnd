@@ -1,6 +1,8 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const EQUIPMENT_API_URL = process.env.EQUIPMENT_API_URL;
-const token = process.env.TOKEN_EQUIPMENT;
+const API_URL = "https://dashboardciesbackend-production.up.railway.app";
+const EQUIPMENT_API_URL =
+  "https://medibit.cies.org.bo/legacy/afciesrednacional/equiposmedicos";
+const token =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI5MjMxMjQ1LCJpYXQiOjE3MjkwMTUyNDUsImp0aSI6IjE4NTQwNTRlNTlhYTQyNzlhNThhYTZmMmI2MWZiOWUyIiwidXNlcl9pZCI6MzcyfQ.pTj-1R_CRrvpvCyuXUOcg_AwxQmUzWrjksX7Oj4ovKU";
 
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { ExternalRequest } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
@@ -132,6 +134,8 @@ export const deleteSolicitudExterna = async (id: string) => {
 export const getEquipment = async (): Promise<EquipmentDetail[]> => {
   let allEquipment: EquipmentDetail[] = [];
   let nextUrl: string | null = `${EQUIPMENT_API_URL}?page=1`;
+
+  console.log("nextUrl: ", nextUrl);
 
   while (nextUrl) {
     try {
