@@ -133,51 +133,7 @@ export const columns: ColumnDef<Maintenance>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
-    cell: ({ row }) => {
-      const currentStatus = statuses.find(
-        (status) => status.value === row.getValue("estado")
-      );
-
-      const handleStatusChange = useCallback(async (newStatus) => {
-        try {
-          const formattedData = {
-            ...row.original,
-            estado: newStatus,
-          };
-
-          await updateMantenimiento(row.original._id, formattedData);
-          toast({
-            title: "Estado Actualizado",
-            description: "El estado del mantenimiento se ha actualizado correctamente.",
-          });
-
-          // Refresh the data
-          window.location.reload();
-        } catch (error) {
-          console.error("Error al actualizar el estado:", error);
-          toast({
-            title: "Error",
-            description: "Hubo un problema al actualizar el estado.",
-            variant: "destructive",
-          });
-        }
-      }, [row]);
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost">{currentStatus ? currentStatus.label : row.getValue("estado")}</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {statuses.map((status) => (
-              <DropdownMenuItem key={status.value} onSelect={() => handleStatusChange(status.value)}>
-                {status.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <StatusCell row={row} />,
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
     },
@@ -387,4 +343,53 @@ const CellComponent = ({ row }) => {
             </Modal>
         </>
     );
+};
+
+// Componente separado para la celda de estado
+const StatusCell = ({ row }) => {
+  const [currentStatus, setCurrentStatus] = useState(() => 
+    statuses.find((status) => status.value === row.getValue("estado"))
+  );
+
+  const handleStatusChange = useCallback(async (newStatus) => {
+    try {
+      const formattedData = {
+        ...row.original,
+        estado: newStatus,
+      };
+
+      await updateMantenimiento(row.original._id, formattedData);
+      toast({
+        title: "Estado Actualizado",
+        description: "El estado del mantenimiento se ha actualizado correctamente.",
+      });
+
+      setCurrentStatus(statuses.find(status => status.value === newStatus));
+      
+      // Considera usar una función de actualización en lugar de recargar la página
+      // window.location.reload();
+    } catch (error) {
+      console.error("Error al actualizar el estado:", error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al actualizar el estado.",
+        variant: "destructive",
+      });
+    }
+  }, [row]);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost">{currentStatus ? currentStatus.label : row.getValue("estado")}</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {statuses.map((status) => (
+          <DropdownMenuItem key={status.value} onSelect={() => handleStatusChange(status.value)}>
+            {status.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
