@@ -5,7 +5,7 @@ import { MaintenanceScheduleForm } from "@/components/forms/maintenance-schedule
 import { getEquipment } from "@/lib/apiService";
 import { useEffect, useState } from "react";
 
-export default async function MaintenanceSchedulePage() {
+export default function MaintenanceSchedulePage() {
   const [equipment, setEquipment] = useState<EquipmentDetail[]>([]);
 
   useEffect(() => {
