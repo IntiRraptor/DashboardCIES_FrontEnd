@@ -1,8 +1,21 @@
+"use client";
+  
+import { EquipmentDetail } from "../../equipos-medicos/data/schema";
 import { MaintenanceScheduleForm } from "@/components/forms/maintenance-schedule-form";
 import { getEquipment } from "@/lib/apiService";
+import { useEffect, useState } from "react";
 
 export default async function MaintenanceSchedulePage() {
-  const equipment = await getEquipment()
+  const [equipment, setEquipment] = useState<EquipmentDetail[]>([]);
+
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      const data = await getEquipment();
+      setEquipment(data);
+    };
+
+    fetchEquipment();
+  }, []);
 
   return (
     <div className="container mx-auto py-10">
