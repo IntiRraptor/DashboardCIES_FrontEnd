@@ -1,8 +1,9 @@
-const API_URL = "https://dashboardciesbackend-production.up.railway.app";
+// const API_URL = "https://dashboardciesbackend-production.up.railway.app";
+const API_URL = "http://localhost:4000";
 const EQUIPMENT_API_URL =
   "https://medibit.cies.org.bo/legacy/afciesrednacional/equiposmedicos";
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI5MjMxMjQ1LCJpYXQiOjE3MjkwMTUyNDUsImp0aSI6IjE4NTQwNTRlNTlhYTQyNzlhNThhYTZmMmI2MWZiOWUyIiwidXNlcl9pZCI6MzcyfQ.pTj-1R_CRrvpvCyuXUOcg_AwxQmUzWrjksX7Oj4ovKU";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI5NDkyOTcxLCJpYXQiOjE3MjkyNzY5NzEsImp0aSI6IjViNDkwMjZiNDRiYjQ1YjZhY2Q2YjUyMjc3YjY3ZTZlIiwidXNlcl9pZCI6MzcyfQ.ljySlvO5Z3aQC5dUZwZw3WS4Af5lZ8CteqoEiyas2B4";
 
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { ExternalRequest } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
@@ -75,7 +76,10 @@ export const deleteMantenimiento = async (id: string) => {
   if (!response.ok) {
     throw new Error("Error deleting mantenimiento");
   }
-  return response.json();
+
+  console.log("Response: ", response);
+
+  return "Deleted";
 };
 
 // Solicitudes Externas
@@ -147,8 +151,6 @@ export const getEquipment = async (): Promise<EquipmentDetail[]> => {
         },
       });
 
-      console.log("Fetch response status:", response.status);
-
       if (!response.ok) {
         throw new Error(
           `Error al obtener los equipos médicos: ${response.statusText}`
@@ -166,9 +168,9 @@ export const getEquipment = async (): Promise<EquipmentDetail[]> => {
       allEquipment = [...allEquipment, ...data.results];
       nextUrl = data.next;
 
-      console.log(
-        `Obtenidos ${data.results.length} equipos. Siguiente página: ${nextUrl}`
-      );
+      // console.log(
+      //   `Obtenidos ${data.results.length} equipos. Siguiente página: ${nextUrl}`
+      // );
     } catch (error) {
       console.error("Error fetching equipment data:", error);
       break; // Salir del bucle en caso de error

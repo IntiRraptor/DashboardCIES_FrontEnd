@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -14,7 +14,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 import {
   Table,
@@ -23,47 +23,52 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
-import { DataTablePagination } from "./data-table-pagination"
-import { DataTableToolbar } from "./data-table-toolbar"
+import { DataTablePagination } from "./data-table-pagination";
+import { DataTableToolbar } from "./data-table-toolbar";
+import { deleteMantenimiento } from "@/lib/apiService";
 
 interface DataTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[]
-    data: TData[]
-    filterColumn: string
-    filterPlaceholder: string
-    facetedFilters: {
-      column: string
-      title: string
-      options: {
-        label: string
-        value: string
-        icon?: React.ComponentType<{ className?: string }>
-      }[]
-    }[]
-    toolbarChildren?: React.ReactNode
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterColumn: string;
+  filterPlaceholder: string;
+  facetedFilters: {
+    column: string;
+    title: string;
+    options: {
+      label: string;
+      value: string;
+      icon?: React.ComponentType<{ className?: string }>;
+    }[];
+  }[];
+  toolbarChildren?: React.ReactNode;
+  onDeleteSelected?: (selectedRows: TData[]) => void;
+  downloadType: 'equipment' | 'maintenance';
+  showDelete: boolean;
 }
 
 export function DataTable<TData, TValue>({
-    columns,
-    data,
-    filterColumn,
-    filterPlaceholder,
-    facetedFilters,
-    toolbarChildren,
-  }: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = React.useState({})
+  columns,
+  data,
+  filterColumn,
+  filterPlaceholder,
+  facetedFilters,
+  toolbarChildren,
+  onDeleteSelected,
+  downloadType,
+  showDelete,
+}: DataTableProps<TData, TValue>) {
+  const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+    React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
-  )
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 12, // Set your desired default page size here
-  })
+  );
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState("");
+
   const table = useReactTable({
     data,
     columns,
@@ -71,31 +76,51 @@ export function DataTable<TData, TValue>({
       sorting,
       columnVisibility,
       rowSelection,
-    columnFilters,
-        pagination
-      },
-      onPaginationChange: setPagination,
+      columnFilters,
+      globalFilter,
+    },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchValue = filterValue.toLowerCase();
+      const name = String(row.getValue("name") || "").toLowerCase();
+      const assetCode = String(row.getValue("assetCode") || "").toLowerCase();
+      return name.includes(searchValue) || assetCode.includes(searchValue);
+    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    enableColumnFilters: true,
-  })
+  });
+
+  const handleDeleteSelected = async () => {
+    if (onDeleteSelected) {
+      const selectedRows = table
+        .getFilteredSelectedRowModel()
+        .rows.map((row) => row.original);
+      onDeleteSelected(selectedRows);
+    }
+  };
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar 
+      <DataTableToolbar
         table={table}
         filterColumn={filterColumn}
         filterPlaceholder={filterPlaceholder}
         facetedFilters={facetedFilters}
+        data={data}
+        globalFilter={globalFilter}
+        setGlobalFilter={setGlobalFilter}
+        onDeleteSelected={handleDeleteSelected}
+        downloadType={downloadType}
+        showDelete={showDelete}
       >
         {toolbarChildren}
       </DataTableToolbar>
@@ -114,7 +139,7 @@ export function DataTable<TData, TValue>({
                             header.getContext()
                           )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -149,8 +174,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-          <DataTablePagination table={table} />
+      <DataTablePagination table={table} />
     </div>
-  )
+  );
 }
-

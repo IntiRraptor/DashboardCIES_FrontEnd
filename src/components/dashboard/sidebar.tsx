@@ -118,31 +118,6 @@ export function Sidebar({ className }: SidebarProps) {
               <FileIcon className="mr-2 h-4 w-4" />
               Solicitudes Externas
             </Button>
-            <Button
-              variant={isActive("/dashboard/correo") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => router.push("/dashboard/correo")}
-            >
-              <MailIcon className="mr-2 h-4 w-4" />
-              Correo
-            </Button>
-          </div>
-        </div>
-        <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-            Anexo
-          </h2>
-          <div className="space-y-1">
-            <Button
-              variant={
-                isActive("/dashboard/documentos") ? "secondary" : "ghost"
-              }
-              className="w-full justify-start"
-              onClick={() => router.push("/dashboard/documentos")}
-            >
-              <FileTextIcon className="mr-2 h-4 w-4" />
-              Documentos
-            </Button>
           </div>
         </div>
       </div>

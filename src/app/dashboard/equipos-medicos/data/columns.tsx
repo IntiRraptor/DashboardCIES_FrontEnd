@@ -74,15 +74,5 @@ export const columns: ColumnDef<EquipmentData>[] = [
     cell: ({ row }) => <div>{row.getValue("brand")}</div>,
     enableSorting: true,
     enableHiding: true,
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        labels={categories}
-        labelField="category" // Ajustar si "category" se refiere a algo en los datos
-      />
-    ),
-  },
+  }
 ];

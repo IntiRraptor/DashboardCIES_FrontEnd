@@ -21,7 +21,13 @@ interface DataTableToolbarProps<TData> {
       icon?: React.ComponentType<{ className?: string }>;
     }[];
   }[];
-  children?: React.ReactNode; // Add this line
+  children?: React.ReactNode;
+  data: TData[];
+  globalFilter: string;
+  setGlobalFilter: (value: string) => void;
+  onDeleteSelected?: () => void;
+  downloadType: 'equipment' | 'maintenance';
+  showDelete: boolean;
 }
 
 export function DataTableToolbar<TData>({
@@ -29,21 +35,23 @@ export function DataTableToolbar<TData>({
   filterColumn,
   filterPlaceholder,
   facetedFilters,
-  children, // Add this line
+  children,
+  data,
+  downloadType,
+  showDelete,
+  globalFilter,
+  setGlobalFilter,
+  onDeleteSelected,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered = table.getState().columnFilters.length > 0 || globalFilter !== "";
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder={filterPlaceholder}
-          value={
-            (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-            table.getColumn(filterColumn)?.setFilterValue(event.target.value)
-          }
+          value={globalFilter ?? ""}
+          onChange={(event) => setGlobalFilter(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
         {facetedFilters.map((filter) => {
@@ -62,27 +70,26 @@ export function DataTableToolbar<TData>({
         {isFiltered && (
           <Button
             variant="ghost"
-            onClick={() => table.resetColumnFilters()}
+            onClick={() => {
+              table.resetColumnFilters();
+              setGlobalFilter("");
+            }}
             className="h-8 px-2 lg:px-3"
           >
             Reset
             <Cross2Icon className="ml-2 h-4 w-4" />
           </Button>
         )}
-        {children} {/* Add this line to render the children */}
+        {children}
       </div>
       <DataTableViewOptions
         table={table}
-        onDelete={() => {
-          // Lógica para eliminar
-          console.log("Eliminar");
-        }}
-        onDownload={() => {
-          // Lógica para descargar
-          console.log("Descargar");
-        }}
+        downloadType={downloadType}
+        showDelete={showDelete ? !!onDeleteSelected : false}
+        showDownload={true}
+        onDelete={onDeleteSelected ?? (() => {})}
+        data={data}
       />
     </div>
   );
 }
-

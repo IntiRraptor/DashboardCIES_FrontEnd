@@ -2,31 +2,38 @@
 
 import { columns } from "./data/columns";
 import { DataTable } from "@/components/data-table/data-table";
-import { categories, brands, models } from "./data/data";
 import { getEquipment } from "@/lib/apiService";
 import { useEffect, useState } from "react";
 import { EquipmentDetail } from "./data/schema";
+import { Loader2 } from "lucide-react"; // Importa el ícono de loader
 
 export default function EquiposMedicosPage() {
   const [equipment, setEquipment] = useState<EquipmentDetail[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEquipment = async () => {
-      const data = await getEquipment();
-      setEquipment(data);
+      try {
+        const data = await getEquipment();
+        setEquipment(data);
+      } catch (error) {
+        console.error("Error fetching equipment:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchEquipment();
   }, []);
-  
+
   // Mapear los datos para que coincidan con el tipo esperado
-  const mappedEquipment = equipment.map(item => ({
-    id: item.codigoaf, // Asignar un valor único para 'id'
+  const mappedEquipment = equipment.map((item) => ({
+    id: item.codigoaf,
     name: item.nombreaf,
-    brand: item.aux1, // Asumiendo que 'aux1' es la marca
-    model: item.descaf, // Asumiendo que 'descaf' es el modelo
+    brand: item.aux1,
+    model: item.descaf,
     assetCode: item.codigoaf,
-    category: "default", // Asignar un valor por defecto o derivar de otra propiedad
+    category: "default",
   }));
 
   return (
@@ -39,38 +46,21 @@ export default function EquiposMedicosPage() {
           </p>
         </div>
       </div>
-      <DataTable
-        data={mappedEquipment} // Usar los datos mapeados
-        columns={columns}
-        filterColumn="name"
-        filterPlaceholder="Filtrar equipos..."
-        facetedFilters={[
-          {
-            column: "category",
-            title: "Categoría",
-            options: categories.map((cat) => ({
-              label: cat.label,
-              value: cat.value,
-            })),
-          },
-          {
-            column: "brand",
-            title: "Marca",
-            options: brands.map((brand) => ({
-              label: brand.label,
-              value: brand.value,
-            })),
-          },
-          {
-            column: "model",
-            title: "Modelo",
-            options: models.map((model) => ({
-              label: model.label,
-              value: model.value,
-            })),
-          },
-        ]}
-      />
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <DataTable
+          data={mappedEquipment}
+          columns={columns}
+          showDelete={false}
+          filterColumn="name"
+          filterPlaceholder="Filtrar equipos..."
+          facetedFilters={[]}
+          downloadType="equipment"
+        />
+      )}
     </div>
   );
 }

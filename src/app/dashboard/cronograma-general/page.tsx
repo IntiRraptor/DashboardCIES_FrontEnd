@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { getMantenimientos } from "@/lib/apiService";
+import { Loader2 } from "lucide-react";
 
 // Importación dinámica del componente Calendario
 const Calendario = dynamic(
@@ -50,14 +51,25 @@ export default function CronogramaGeneral() {
     fetchEvents();
   }, []);
 
-  if (isLoading) {
-    return <div>Cargando...</div>;
-  }
-
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Cronograma General</h1>
-      <Calendario events={events} />
+    <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Cronograma General
+          </h2>
+          <p className="text-muted-foreground">
+            Visualiza todas las actividades y mantenimientos programados.
+          </p>
+        </div>
+      </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <Calendario events={events} />
+      )}
     </div>
   );
 }

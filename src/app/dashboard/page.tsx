@@ -49,10 +49,6 @@ export default function DashboardPage() {
     <div className="flex-col space-y-4 p-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Dashboard CIES</h1>
-        <div className="flex items-center space-x-2">
-          <CalendarDateRangePicker />
-          <Button>Descargar</Button>
-        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
