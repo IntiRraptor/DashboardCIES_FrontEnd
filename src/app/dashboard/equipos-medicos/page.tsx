@@ -52,6 +52,7 @@ export default function EquiposMedicosPage() {
         </div>
       ) : (
         <DataTable
+          showDownload={true}
           data={mappedEquipment}
           columns={columns}
           showDelete={false}

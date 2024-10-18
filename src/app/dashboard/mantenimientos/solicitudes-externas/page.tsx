@@ -32,6 +32,9 @@ export default function SolicitudesExternasPage() {
         </div>
       </div>
       <DataTable 
+        downloadType="equipment"
+        showDownload={false}
+        showDelete={false}
         data={externalRequests} 
         columns={columns}
         filterColumn="assetCode"

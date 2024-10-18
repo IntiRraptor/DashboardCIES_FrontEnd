@@ -28,6 +28,7 @@ interface DataTableToolbarProps<TData> {
   onDeleteSelected?: () => void;
   downloadType: 'equipment' | 'maintenance';
   showDelete: boolean;
+  showDownload: boolean;
 }
 
 export function DataTableToolbar<TData>({
@@ -38,6 +39,7 @@ export function DataTableToolbar<TData>({
   children,
   data,
   downloadType,
+  showDownload,
   showDelete,
   globalFilter,
   setGlobalFilter,
@@ -86,7 +88,7 @@ export function DataTableToolbar<TData>({
         table={table}
         downloadType={downloadType}
         showDelete={showDelete ? !!onDeleteSelected : false}
-        showDownload={true}
+        showDownload={showDownload}
         onDelete={onDeleteSelected ?? (() => {})}
         data={data}
       />

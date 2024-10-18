@@ -66,6 +66,7 @@ export default function HistorialMantenimientosPage({
       </div>
       <DataTable
         showDelete={true}
+        showDownload={true}
         data={maintenanceHistory}
         columns={columns}
         filterColumn="equipo"

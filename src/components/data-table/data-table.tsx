@@ -47,6 +47,7 @@ interface DataTableProps<TData, TValue> {
   onDeleteSelected?: (selectedRows: TData[]) => void;
   downloadType: 'equipment' | 'maintenance';
   showDelete: boolean;
+  showDownload: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -59,6 +60,7 @@ export function DataTable<TData, TValue>({
   onDeleteSelected,
   downloadType,
   showDelete,
+  showDownload,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -120,6 +122,7 @@ export function DataTable<TData, TValue>({
         setGlobalFilter={setGlobalFilter}
         onDeleteSelected={handleDeleteSelected}
         downloadType={downloadType}
+        showDownload={showDownload}
         showDelete={showDelete}
       >
         {toolbarChildren}
