@@ -8,6 +8,7 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
+import logoCies from "../../../public/icon.png";
 
 const YesNoOptions = ({
   id,
@@ -45,6 +46,45 @@ const YesNoOptions = ({
     </div>
   </div>
 );
+
+const inspectionItems = {
+  visual: [
+    "El equipo presenta daños físicos notables.",
+    "El contenedor presenta daños físicos notables.",
+    "Paneles de control presenta daños físicos.",
+    "Hay conductores expuestos.",
+    "Los puertos y conectores presentan daños.",
+    "Limpieza deficiente.",
+    "Filtro Hidrófobo en buen estado.",
+    "Mano/Vacuometro en buen estado",
+    "Pedal en buen estado",
+    "Empaques/Orings en buen estado",
+  ],
+  electrical: [
+    "Interfaz de enchufe correcto.",
+    "Cable de Poder en buen estado.",
+    "Botones de control en buen estado.",
+    "Fusibles en buen estado.",
+    "Tipos de Fusibles",
+    "Cable de Poder en buen estado.",
+  ],
+  functional: [
+    "Encendido e inicialización correcto.",
+    "Generación de las presion adecuada.",
+    "Nivel de Ruido por vibración adecuado.",
+    "Cambio de puerto correcto.",
+    "Regulador en buen estado.",
+    "Funcionamiento a pedal correcto.",
+  ],
+  replacement: [
+    "Limpieza y desinfeccion interna",
+    "Limpieza de contactores electricos.",
+    "Limpieza de Paneles de Control y Teclado.",
+    "Desenpolvamiento interno.",
+    "Revisión de módulos y tarjetas.",
+    "Reemplazo de filtros hidrofobos.",
+  ],
+};
 
 export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
   equipment,
@@ -115,24 +155,11 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
     }
   }, [equipment, codigoActivo, isEditMode]);
 
-  const visualInspectionItems = [
-    "El equipo presenta daños físicos notables.",
-    "El contenedor presenta daños físicos notables.",
-    "Los paneles de control presentan daños físicos.",
-    "Hay conductores expuestos.",
-    "Los puertos y conectores presentan daños.",
-    "Limpieza deficiente.",
-    "Filtro hidrófobo en buen estado.",
-    "Manómetro/Vacuómetro en buen estado.",
-    "Pedal en buen estado.",
-    "Empaques/O-rings en buen estado.",
-  ];
-
   const handleSubmit = () => {
-    const getInspectionData = (prefix: string, items: string[]) => {
-      return items.map((item, index) => {
+    const getInspectionData = (items: string[]) => {
+      return items.map((item) => {
         const input = document.querySelector(
-          `input[name="${prefix}-${index}"]:checked`
+          `input[name="${item}"]:checked`
         ) as HTMLInputElement;
         return {
           label: item,
@@ -140,22 +167,6 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
         };
       });
     };
-
-    const visualInspection = getInspectionData("visual", visualInspectionItems);
-    const electricalInspection = getInspectionData("estado", [
-      "Fusibles en buen estado",
-      "Cable de alimentación en buen estado",
-      "Botón de encendido en buen estado",
-    ]);
-    const functionalInspection = getInspectionData("cambio", [
-      "Cambio de potencia funciona correctamente",
-      "Nivel de ruido aceptable",
-    ]);
-    const replacementInspection = getInspectionData("reemplazo", [
-      "Empaques reemplazados",
-      "Membranas reemplazadas",
-      "Rodamientos reemplazados",
-    ]);
 
     const formData = {
       ubicacion,
@@ -168,10 +179,10 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       costo: 0,
       estado: "Programado",
       typeForm: "Protocolo de Mantenimiento Aspirador Nebulizador",
-      visualInspection,
-      electricalInspection,
-      functionalInspection,
-      replacementInspection,
+      visualInspection: getInspectionData(inspectionItems.visual),
+      electricalInspection: getInspectionData(inspectionItems.electrical),
+      functionalInspection: getInspectionData(inspectionItems.functional),
+      replacementInspection: getInspectionData(inspectionItems.replacement),
       observaciones,
       firmaOperador,
       firmaEncargado,
@@ -184,7 +195,7 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       <div className="flex justify-between items-start mb-6">
         <div>
           <Image
-            src="/placeholder.svg"
+            src={logoCies}
             height={50}
             width={100}
             alt="Logo de la Compañía"
@@ -296,11 +307,11 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">1. Inspección Visual</h2>
         <div className="space-y-2">
-          {visualInspectionItems.map((item, index) => (
+          {inspectionItems.visual.map((item, index) => (
             <div key={index} className="flex items-center justify-between">
               <Label htmlFor={`visual-${index}`}>{item}</Label>
               <YesNoOptions
-                id={`visual-${index}`}
+                id={item}
                 defaultValue={
                   visualInspection[index]
                     ? (visualInspection[index] as any).value
@@ -315,23 +326,13 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Inspección Eléctrica</h2>
+        <h2 className="text-lg font-semibold mb-2">2. Inspección Eléctrica</h2>
         <div className="space-y-2">
-          {[
-            { id: "estadoFusibles", label: "Fusibles en buen estado" },
-            {
-              id: "estadoCableAlimentacion",
-              label: "Cable de alimentación en buen estado",
-            },
-            {
-              id: "estadoBotonEncendido",
-              label: "Botón de encendido en buen estado",
-            },
-          ].map((item, index) => (
+          {inspectionItems.electrical.map((item, index) => (
             <div key={index} className="flex items-center justify-between">
-              <Label htmlFor={item.id}>{item.label}</Label>
+              <Label htmlFor={`electrical-${index}`}>{item}</Label>
               <YesNoOptions
-                id={item.id}
+                id={item}
                 defaultValue={
                   electricalInspection[index]
                     ? (electricalInspection[index] as any).value
@@ -346,19 +347,13 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Inspección Funcional</h2>
+        <h2 className="text-lg font-semibold mb-2">3. Inspección Funcional</h2>
         <div className="space-y-2">
-          {[
-            {
-              id: "cambioPotencia",
-              label: "Cambio de potencia funciona correctamente",
-            },
-            { id: "nivelRuido", label: "Nivel de ruido aceptable" },
-          ].map((item, index) => (
+          {inspectionItems.functional.map((item, index) => (
             <div key={index} className="flex items-center justify-between">
-              <Label htmlFor={item.id}>{item.label}</Label>
+              <Label htmlFor={`functional-${index}`}>{item}</Label>
               <YesNoOptions
-                id={item.id}
+                id={item}
                 defaultValue={
                   functionalInspection[index]
                     ? (functionalInspection[index] as any).value
@@ -374,18 +369,14 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
 
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">
-          Reemplazo de Empaques, Membranas y Rodamientos
+          4. Remplazo de Empaques, Membranas y Cojinete (Solo si fuese necesario)
         </h2>
         <div className="space-y-2">
-          {[
-            { id: "reemplazoEmpaques", label: "Empaques reemplazados" },
-            { id: "reemplazoMembranas", label: "Membranas reemplazadas" },
-            { id: "reemplazoRodamientos", label: "Rodamientos reemplazados" },
-          ].map((item, index) => (
+          {inspectionItems.replacement.map((item, index) => (
             <div key={index} className="flex items-center justify-between">
-              <Label htmlFor={item.id}>{item.label}</Label>
+              <Label htmlFor={`replacement-${index}`}>{item}</Label>
               <YesNoOptions
-                id={item.id}
+                id={item}
                 defaultValue={
                   replacementInspection[index]
                     ? (replacementInspection[index] as any).value

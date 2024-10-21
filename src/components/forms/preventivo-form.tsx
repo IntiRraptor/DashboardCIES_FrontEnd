@@ -19,65 +19,74 @@ import {
 import { Checkbox } from "../ui/checkbox";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
+import logoCies from "../../../public/icon.png";
 
-// Esquema de validación de Zod
 const formSchema = z.object({
-  codigoActivo: z.string({
-    required_error: "El código activo es requerido",
+  codigoActivo: z.string().min(1, "El código activo es requerido"),
+  marca: z.string().min(1, "La marca es requerida"),
+  modelo: z.string().min(1, "El modelo es requerido"),
+  serie: z.string().min(1, "La serie es requerida"),
+  garantia: z.boolean(),
+  tipo: z.enum(["Criocauterio", "Termoablación"]),
+  sucursal: z.string().min(1, "La sucursal es requerida"),
+  regional: z.string().min(1, "La regional es requerida"),
+  inspeccionVisual: z.array(z.object({
+    descripcion: z.string(),
+    realizado: z.boolean(),
+  })),
+  inspeccionElectrica: z.array(z.object({
+    descripcion: z.string(),
+    realizado: z.boolean(),
+  })),
+  inspeccionFuncional: z.array(z.object({
+    descripcion: z.string(),
+    realizado: z.boolean(),
+  })),
+  inspeccionAccesorios: z.object({
+    cantidadCabezales: z.string(),
+    cantidadBaterias: z.string(),
+    cabezales: z.array(z.object({
+      modelo: z.string(),
+      serie: z.string(),
+      recubrimiento: z.boolean(),
+      rosca: z.boolean(),
+      resistencia: z.boolean(),
+      abolladuras: z.boolean(),
+    })),
   }),
-  marca: z.string({
-    required_error: "La marca es requerida",
-  }),
-  modelo: z.string({
-    required_error: "El modelo es requerido",
-  }),
-  serie: z.string({
-    required_error: "La serie es requerida",
-  }),
-  tipoServicio: z.string({
-    required_error: "El tipo de servicio es requerido",
-  }),
-  region: z.string({
-    required_error: "La región es requerida",
-  }),
-  nroInventario: z.string({
-    required_error: "El número de inventario es requerido",
-  }),
-  servicioUbicacion: z.string({
-    required_error: "El servicio/ubicación es requerido",
-  }),
-  inspecciones: z.array(
-    z.object({
-      descripcion: z.string(),
-      realizado: z.boolean(),
-      observacion: z.string().optional(),
-    })
-  ),
-  conexionesEspeciales: z.object({
-    oxigeno: z.boolean(),
-    aireMedicional: z.boolean(),
-    vacio: z.boolean(),
-  }),
-  codigo: z.string({
-    required_error: "El código es requerido",
-  }),
-  ubicacion: z.string({
-    required_error: "La ubicación es requerida",
-  }),
-  observaciones: z.string().optional(),
-  hojaDeVida: z.array(
-    z.object({
-      fecha: z.string({
-        required_error: "La fecha es requerida",
-      }),
-      firmaConformidad: z.string().optional(),
-      firmaResponsable: z.string().optional(),
-      observaciones: z.string().optional(),
-    })
-  ),
+  observaciones: z.string(),
+  firmaOperador: z.string(),
+  firmaEncargado: z.string(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const YesNoOptions = ({ id, value, onChange }: { id: string, value: boolean, onChange: (value: boolean) => void }) => (
+  <div className="flex space-x-4">
+    <div className="flex items-center space-x-2">
+      <input
+        type="radio"
+        id={`${id}-si`}
+        name={id}
+        checked={value}
+        onChange={() => onChange(true)}
+        className="radio-input"
+      />
+      <label htmlFor={`${id}-si`} className="radio-label">Sí</label>
+    </div>
+    <div className="flex items-center space-x-2">
+      <input
+        type="radio"
+        id={`${id}-no`}
+        name={id}
+        checked={!value}
+        onChange={() => onChange(false)}
+        className="radio-input"
+      />
+      <label htmlFor={`${id}-no`} className="radio-label">No</label>
+    </div>
+  </div>
+);
 
 export function PreventivoForm({
   equipment,
@@ -90,402 +99,409 @@ export function PreventivoForm({
   initialData: any;
   isEditMode: boolean;
 }) {
-  const [marca, setMarca] = useState("");
-  const [modelo, setModelo] = useState("");
-  const [numeroSerie, setNumeroSerie] = useState("");
   const [codigoActivo, setCodigoActivo] = useState("");
 
-  useEffect(() => {
-    if (isEditMode) {
-      const details = JSON.parse(initialData.details);
-      const foundEquipment = findEquipmentByCode(equipment, details.equipo);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      inspeccionVisual: [
+        { descripcion: "El equipo presenta daños físicos notables.", realizado: false },
+        { descripcion: "Los accesorios presentan daños físicos notables", realizado: false },
+      ],
+      inspeccionElectrica: [
+        { descripcion: "Baterías en buen estado.", realizado: false },
+        { descripcion: "Voltaje Batería.", realizado: false },
+        { descripcion: "Fusibles en buen estado.", realizado: false },
+        { descripcion: "Tipos de Fusibles", realizado: false },
+      ],
+      inspeccionFuncional: [
+        { descripcion: "Encendido e inicialización correcto.", realizado: false },
+        { descripcion: "Fugas o derrames presentes.", realizado: false },
+        { descripcion: "Temperatura de operación correcta.", realizado: false },
+        { descripcion: "Función de enfriamiento adecuada.", realizado: false },
+        { descripcion: "Función de calentamiento adecuada.", realizado: false },
+        { descripcion: "Función de restablecimiento temp.", realizado: false },
+      ],
+      inspeccionAccesorios: {
+        cantidadCabezales: "1",
+        cantidadBaterias: "",
+        cabezales: [
+          { modelo: "", serie: "", recubrimiento: false, rosca: false, resistencia: false, abolladuras: false },
+        ],
+      },
+    },
+  });
 
-      setCodigoActivo(details.equipo || "");
-      setMarca(foundEquipment?.nombreaf || "");
-      setModelo(foundEquipment?.descaf || "");
-      setNumeroSerie(foundEquipment?.aux1 || "");
-      form.setValue("inspecciones", details.inspecciones || []);
-      form.setValue("conexionesEspeciales", details.conexionesEspeciales || {});
-      form.setValue("hojaDeVida", details.hojaDeVida || []);
-      form.setValue("ubicacion", details.ubicacion || "");
-      form.setValue("observaciones", details.observaciones || "");
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      const details = JSON.parse(initialData.details);
+      form.reset(details);
+      setCodigoActivo(details.codigoActivo || "");
     }
-  }, [initialData, isEditMode]);
+  }, [initialData, isEditMode, form]);
 
   useEffect(() => {
     if (!isEditMode) {
       const foundEquipment = findEquipmentByCode(equipment, codigoActivo);
       if (foundEquipment) {
-        setMarca(foundEquipment.nombreaf);
-        setModelo(foundEquipment.descaf);
-        setNumeroSerie(foundEquipment.aux1);
+        form.setValue("marca", foundEquipment.nombreaf);
+        form.setValue("modelo", foundEquipment.descaf);
+        form.setValue("serie", foundEquipment.aux1);
       } else {
-        setMarca("");
-        setModelo("");
-        setNumeroSerie("");
+        form.setValue("marca", "");
+        form.setValue("modelo", "");
+        form.setValue("serie", "");
       }
     }
-  }, [equipment, codigoActivo, isEditMode]);
+  }, [equipment, codigoActivo, isEditMode, form]);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    mode: "onChange",
-    defaultValues: {
-      inspecciones: [{ descripcion: "", realizado: false, observacion: "" }],
-      conexionesEspeciales: {
-        oxigeno: false,
-        aireMedicional: false,
-        vacio: false,
-      },
-      hojaDeVida: [
-        {
-          fecha: "",
-          firmaConformidad: "",
-          firmaResponsable: "",
-          observaciones: "",
-        },
-      ],
-    },
-  });
-
-  const handlePrint = (formData: any) => {
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Informe de Mantenimiento Preventivo</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              h1 { text-align: center; }
-              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; }
-            </style>
-          </head>
-          <body>
-            <h1>Informe de Mantenimiento Preventivo</h1>
-            <table>
-              <tr><th>Ubicación</th><td>${formData.ubicacion}</td></tr>
-              <tr><th>Fecha</th><td>${formData.fecha}</td></tr>
-              <tr><th>Tipo</th><td>${formData.tipo}</td></tr>
-              <tr><th>Equipo</th><td>${formData.equipo}</td></tr>
-              <tr><th>Costo</th><td>${formData.costo}</td></tr>
-              <tr><th>Estado</th><td>${formData.estado}</td></tr>
-              <tr><th>Inspección General</th><td>${formData.inspeccionGeneral
-                .map(
-                  (insp) => `${insp.descripcion}: ${insp.observacion || "N/A"}`
-                )
-                .join("<br>")}</td></tr>
-              <tr><th>Conexiones Especiales</th><td>Oxígeno: ${
-                formData.conexionesEspeciales.oxigeno ? "Sí" : "No"
-              }, Aire Medicinal: ${
-        formData.conexionesEspeciales.aireMedicional ? "Sí" : "No"
-      }, Vacío: ${formData.conexionesEspeciales.vacio ? "Sí" : "No"}</td></tr>
-              <tr><th>Hoja de Vida</th><td>${formData.hojaDeVida
-                .map(
-                  (entry) =>
-                    `Fecha: ${entry.fecha}, Firma Conformidad: ${
-                      entry.firmaConformidad || "N/A"
-                    }, Firma Responsable: ${entry.firmaResponsable || "N/A"}`
-                )
-                .join("<br>")}</td></tr>
-            </table>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
+  useEffect(() => {
+    const cantidadCabezales = parseInt(form.watch("inspeccionAccesorios.cantidadCabezales") || "1");
+    const cabezalesActuales = form.watch("inspeccionAccesorios.cabezales");
+    
+    if (cantidadCabezales >= 1 && cantidadCabezales <= 9) {
+      const nuevoCabezales = Array(cantidadCabezales).fill(null).map((_, index) => 
+        cabezalesActuales[index] || { modelo: "", serie: "", recubrimiento: false, rosca: false, resistencia: false, abolladuras: false }
+      );
+      form.setValue("inspeccionAccesorios.cabezales", nuevoCabezales);
     }
-  };
+  }, [form.watch("inspeccionAccesorios.cantidadCabezales")]);
 
-  const handleSubmit = () => {
+  const handleSubmit = form.handleSubmit((data) => {
     const formData = {
-      ubicacion: form.getValues("ubicacion"),
-      fecha: form.getValues("hojaDeVida")[0]?.fecha || "",
-      tipo: "Preventivo",
+      ...data,
       equipo: codigoActivo,
+      tipo: "Preventivo",
       costo: 0,
       estado: "Programado",
-      inspeccionGeneral: form.getValues("inspecciones").map((insp) => ({
-        descripcion: insp.descripcion,
-        observacion: insp.observacion,
-      })),
       typeForm: "Protocolo de Mantenimiento Criocauterio Termoablación",
-      conexionesEspeciales: form.getValues("conexionesEspeciales"),
-      hojaDeVida: form.getValues("hojaDeVida").map((entry) => ({
-        fecha: entry.fecha,
-        firmaConformidad: entry.firmaConformidad,
-        firmaResponsable: entry.firmaResponsable,
-      })),
+      inspeccionAccesorios: {
+        ...data.inspeccionAccesorios,
+        cabezales: data.inspeccionAccesorios.cabezales.slice(0, parseInt(data.inspeccionAccesorios.cantidadCabezales))
+      }
     };
     onSubmit(formData);
-    handlePrint(formData);
-  };
+  });
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <Image
-            src="/placeholder.svg"
-            height={50}
-            width={100}
-            alt="Logo de la Compañía"
-            className="h-12 w-auto"
-          />
-        </div>
-        <div className="text-center flex-grow">
-          <h1 className="text-2xl font-bold">
-            RECIBO DE MANTENIMIENTO PREVENTIVO PLANIFICADO
-          </h1>
-        </div>
-        <div className="text-right">
-          <div className="mb-2">
-            <Label htmlFor="ubicacion">Ubicación:</Label>
-            <Input
-              id="ubicacion"
-              className="w-40"
-              value={form.getValues("ubicacion")}
-              onChange={(e) => form.setValue("ubicacion", e.target.value)}
+    <Form {...form}>
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+        <div className="flex justify-between items-start mb-6">
+          <Image src={logoCies} height={50} width={100} alt="Logo de la Compañía" className="h-12 w-auto" />
+          <div className="text-center flex-grow">
+            <h1 className="text-2xl font-bold">
+              COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO CRIOCAUTERIO/TERMOABLACIÓN
+            </h1>
+          </div>
+          <div className="text-right">
+            <FormField
+              control={form.control}
+              name="sucursal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sucursal:</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="w-40" />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="regional"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Regional:</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="w-40" />
+                  </FormControl>
+                </FormItem>
+              )}
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <FormField
+            control={form.control}
+            name="codigoActivo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Código de Activo:</FormLabel>
+                <FormControl>
+                  <Input {...field} onChange={(e) => {
+                    setCodigoActivo(e.target.value);
+                    field.onChange(e);
+                  }} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="marca"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Marca:</FormLabel>
+                <FormControl>
+                  <Input {...field} readOnly />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="modelo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Modelo:</FormLabel>
+                <FormControl>
+                  <Input {...field} readOnly />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="serie"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>N/S:</FormLabel>
+                <FormControl>
+                  <Input {...field} readOnly />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="garantia"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Garantía:</FormLabel>
+                <FormControl>
+                  <YesNoOptions id="garantia" value={field.value} onChange={field.onChange} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="tipo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo:</FormLabel>
+                <FormControl>
+                  <select {...field} className="w-full p-2 border rounded">
+                    <option value="Criocauterio">Criocauterio</option>
+                    <option value="Termoablación">Termoablación</option>
+                  </select>
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="space-y-6">
           <div>
-            <Label htmlFor="fecha">Fecha:</Label>
-            <Input
-              id="fecha"
-              type="date"
-              className="w-40"
-              value={form.getValues("hojaDeVida")[0]?.fecha || ""}
-              onChange={(e) =>
-                form.setValue("hojaDeVida.0.fecha", e.target.value)
-              }
-            />
+            <h2 className="text-lg font-semibold mb-2">1. Inspección Visual</h2>
+            {form.watch("inspeccionVisual").map((item, index) => (
+              <div key={index} className="flex items-center justify-between mb-2">
+                <span>{item.descripcion}</span>
+                <YesNoOptions
+                  id={`inspeccionVisual-${index}`}
+                  value={item.realizado}
+                  onChange={(value) => form.setValue(`inspeccionVisual.${index}.realizado`, value)}
+                />
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
 
-      {/* Sección de Características del Equipo y Servicio */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField
-          control={form.control}
-          name="codigoActivo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Código Activo</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Código Activo"
-                  value={codigoActivo}
-                  onChange={(e) => setCodigoActivo(e.target.value)}
+          <div>
+            <h2 className="text-lg font-semibold mb-2">2. Inspección Eléctrica</h2>
+            {form.watch("inspeccionElectrica").map((item, index) => (
+              <div key={index} className="flex items-center justify-between mb-2">
+                <span>{item.descripcion}</span>
+                <YesNoOptions
+                  id={`inspeccionElectrica-${index}`}
+                  value={item.realizado}
+                  onChange={(value) => form.setValue(`inspeccionElectrica.${index}.realizado`, value)}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="marca"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Marca</FormLabel>
-              <FormControl>
-                <Input id="marca" value={marca} readOnly placeholder="Marca" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="modelo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Modelo</FormLabel>
-              <FormControl>
-                <Input
-                  id="modelo"
-                  value={modelo}
-                  readOnly
-                  placeholder="Modelo"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="serie"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Serie</FormLabel>
-              <FormControl>
-                <Input
-                  id="serie"
-                  value={numeroSerie}
-                  readOnly
-                  placeholder="Serie"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      {/* Sección de Inspección General */}
-      <div className="space-y-6">
-        <FormLabel>Inspección General y Observaciones</FormLabel>
-        {form.watch("inspecciones")?.map((_, index) => (
-          <div key={index} className="grid grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name={`inspecciones.${index}.descripcion`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Descripción" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`inspecciones.${index}.realizado`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`inspecciones.${index}.observacion`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Observación" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Sección de Conexiones Especiales */}
-      <div className="space-y-6">
-        <FormLabel>Conexiones Especiales</FormLabel>
-        <div className="grid grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="conexionesEspeciales.oxigeno"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Oxígeno</FormLabel>
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="conexionesEspeciales.aireMedicional"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Aire Medicinal</FormLabel>
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="conexionesEspeciales.vacio"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Vacío</FormLabel>
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
-      </div>
+          <div>
+            <h2 className="text-lg font-semibold mb-2">3. Inspección Funcional</h2>
+            {form.watch("inspeccionFuncional").map((item, index) => (
+              <div key={index} className="flex items-center justify-between mb-2">
+                <span>{item.descripcion}</span>
+                <YesNoOptions
+                  id={`inspeccionFuncional-${index}`}
+                  value={item.realizado}
+                  onChange={(value) => form.setValue(`inspeccionFuncional.${index}.realizado`, value)}
+                />
+              </div>
+            ))}
+          </div>
 
-      {/* Sección de Hoja de Vida */}
-      <div className="space-y-6">
-        <FormLabel>Hoja de Vida</FormLabel>
-        <div className="grid grid-cols-4 gap-4">
-          {form.watch("hojaDeVida")?.map((_, index) => (
-            <div key={index} className="space-y-2">
+          <div>
+            <h2 className="text-lg font-semibold mb-2">4. Inspección Accesorios</h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <FormField
                 control={form.control}
-                name={`hojaDeVida.${index}.fecha`}
+                name="inspeccionAccesorios.cantidadCabezales"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fecha</FormLabel>
+                    <FormLabel>Cantidad de cabezales:</FormLabel>
                     <FormControl>
-                      <Input placeholder="Fecha" {...field} />
+                      <Input 
+                        {...field} 
+                        type="number" 
+                        min="1" 
+                        max="9"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "" || (parseInt(value) >= 1 && parseInt(value) <= 9)) {
+                            field.onChange(value);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === "" || parseInt(e.target.value) < 1) {
+                            field.onChange("1");
+                          }
+                        }}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name={`hojaDeVida.${index}.firmaConformidad`}
+                name="inspeccionAccesorios.cantidadBaterias"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Firma Conformidad</FormLabel>
+                    <FormLabel>Cantidad de Baterías</FormLabel>
                     <FormControl>
-                      <Input placeholder="Firma" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`hojaDeVida.${index}.firmaResponsable`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Firma Responsable</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Firma" {...field} />
+                      <Input {...field} type="number" />
                     </FormControl>
                   </FormItem>
                 )}
               />
             </div>
-          ))}
+            {form.watch("inspeccionAccesorios.cabezales").map((cabezal, index) => (
+              <div key={index} className="border p-4 mb-4 rounded">
+                <h3 className="font-semibold mb-2">Cabezal {index + 1}</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name={`inspeccionAccesorios.cabezales.${index}.modelo`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Modelo:</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`inspeccionAccesorios.cabezales.${index}.serie`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>N/S:</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div>
+                    <span>Recubrimiento del cabezal en buen estado</span>
+                    <YesNoOptions
+                      id={`cabezal-${index}-recubrimiento`}
+                      value={cabezal.recubrimiento}
+                      onChange={(value) => form.setValue(`inspeccionAccesorios.cabezales.${index}.recubrimiento`, value)}
+                    />
+                  </div>
+                  <div>
+                    <span>Rosca y conector sin daños</span>
+                    <YesNoOptions
+                      id={`cabezal-${index}-rosca`}
+                      value={cabezal.rosca}
+                      onChange={(value) => form.setValue(`inspeccionAccesorios.cabezales.${index}.rosca`, value)}
+                    />
+                  </div>
+                  <div>
+                    <span>Resistencia del cabezal adecuado</span>
+                    <YesNoOptions
+                      id={`cabezal-${index}-resistencia`}
+                      value={cabezal.resistencia}
+                      onChange={(value) => form.setValue(`inspeccionAccesorios.cabezales.${index}.resistencia`, value)}
+                    />
+                  </div>
+                  <div>
+                    <span>Abolladuras o raspaduras</span>
+                    <YesNoOptions
+                      id={`cabezal-${index}-abolladuras`}
+                      value={cabezal.abolladuras}
+                      onChange={(value) => form.setValue(`inspeccionAccesorios.cabezales.${index}.abolladuras`, value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Botón Final */}
-      <div className="flex justify-end">
-        <Button type="button" onClick={handleSubmit}>
-          Guardar e Imprimir
-        </Button>
-      </div>
-    </div>
+        <FormField
+          control={form.control}
+          name="observaciones"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Observaciones:</FormLabel>
+              <FormControl>
+                <textarea {...field} className="w-full p-2 border rounded" rows={4} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          <FormField
+            control={form.control}
+            name="firmaOperador"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Firma del Operador:</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="firmaEncargado"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Firma del Encargado del Equipo:</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="mt-6 text-center">
+          <Button type="button" onClick={handleSubmit}>Enviar Formulario de Mantenimiento</Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 

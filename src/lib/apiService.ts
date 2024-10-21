@@ -1,5 +1,5 @@
-// const API_URL = "https://dashboardciesbackend-production.up.railway.app";
-const API_URL = "http://localhost:4000";
+const API_URL = "https://dashboardciesbackend-production.up.railway.app";
+// const API_URL = "http://localhost:4000";
 const EQUIPMENT_API_URL =
   "https://medibit.cies.org.bo/legacy/afciesrednacional/equiposmedicos";
 const token =

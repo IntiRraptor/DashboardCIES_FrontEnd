@@ -115,6 +115,34 @@ export function MaintenanceScheduleForm({
     "Protocolo de Mantenimiento Monitores_Fetal_ECG",
   ];
 
+  const locations = [
+    "LPZ - Tumusla",
+    "LPZ - Villa Adela",
+    "LPZ - Terminal",
+    "LPZ - Chasquipampa",
+    "LPZ - Villa Fatima",
+    "LPZ - Miraflores",
+    "LPZ - San Pedro",
+    "Cbba - Uruguay",
+    "Cbba - Clínica",
+    "SCZ - La Ramada",
+    "SCZ - Alemana",
+    "TJA - Mercado",
+    "La Paz",
+    "Tarija",
+    "Riberalta",
+    "Sucre",
+    "Potosi",
+    "Uyuni",
+    "Oruro",
+    "Umosas",
+    "Oficina nacional",
+    "Ceja",
+    "Argentina",
+    "El Alto",
+    "Umosa",
+  ];
+
   const getFormOptions = (type: string) => {
     console.log("GetFormOptions:", type);
     switch (type) {
@@ -297,7 +325,7 @@ export function MaintenanceScheduleForm({
             name="region"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>3. Selecciona la región</FormLabel>
+                <FormLabel>3. Selecciona la ubicación</FormLabel>
                 <Select
                   onValueChange={(value) => {
                     field.onChange(value);
@@ -306,15 +334,16 @@ export function MaintenanceScheduleForm({
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Selecciona una región" />
+                    <SelectTrigger className="w-[280px]">
+                      <SelectValue placeholder="Selecciona una ubicación" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Cochabamba">Cochabamba</SelectItem>
-                    <SelectItem value="La Paz">La Paz</SelectItem>
-                    <SelectItem value="Sucre">Sucre</SelectItem>
-                    <SelectItem value="Santa Cruz">Santa Cruz</SelectItem>
+                    {locations.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
