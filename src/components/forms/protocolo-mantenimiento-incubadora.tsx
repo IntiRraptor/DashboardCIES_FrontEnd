@@ -9,8 +9,18 @@ import { Textarea } from "../ui/textarea";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
 import logoCies from "../../../public/icon.png";
+import { format, addMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
-const YesNoOptions = ({ id, value, onChange }: { id: string; value: boolean; onChange: (value: boolean) => void }) => (
+const YesNoOptions = ({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}) => (
   <div className="flex space-x-4">
     <div className="flex items-center space-x-2">
       <input
@@ -21,7 +31,9 @@ const YesNoOptions = ({ id, value, onChange }: { id: string; value: boolean; onC
         onChange={() => onChange(true)}
         className="radio-input"
       />
-      <label htmlFor={`${id}-si`} className="radio-label">Sí</label>
+      <label htmlFor={`${id}-si`} className="radio-label">
+        Sí
+      </label>
     </div>
     <div className="flex items-center space-x-2">
       <input
@@ -32,7 +44,9 @@ const YesNoOptions = ({ id, value, onChange }: { id: string; value: boolean; onC
         onChange={() => onChange(false)}
         className="radio-input"
       />
-      <label htmlFor={`${id}-no`} className="radio-label">No</label>
+      <label htmlFor={`${id}-no`} className="radio-label">
+        No
+      </label>
     </div>
   </div>
 );
@@ -42,11 +56,15 @@ export default function FormularioMantenimientoIncubadora({
   onSubmit,
   initialData,
   isEditMode = false,
+  region,
+  ubicacion,
 }: {
   equipment: EquipmentDetail[];
   onSubmit: (data: any) => void;
   initialData: any;
   isEditMode: boolean;
+  region: string;
+  ubicacion: string;
 }) {
   const [formData, setFormData] = useState({
     codigoActivo: "",
@@ -56,8 +74,8 @@ export default function FormularioMantenimientoIncubadora({
     garantia: false,
     tipo: "Incubadora",
     sucursal: "",
-    regional: "",
-    lugar: "",
+    regional: region,
+    lugar: ubicacion,
     fecha: "",
     inspeccionVisual: {
       dañosFisicos: false,
@@ -124,10 +142,12 @@ export default function FormularioMantenimientoIncubadora({
     firmaOperador: "",
   });
 
+  const [isFormValid, setIsFormValid] = useState(false);
+
   useEffect(() => {
     if (isEditMode && initialData) {
       const details = JSON.parse(initialData.details);
-      setFormData(prevState => ({
+      setFormData((prevState) => ({
         ...prevState,
         ...details,
         codigoActivo: details.equipo || "",
@@ -137,9 +157,12 @@ export default function FormularioMantenimientoIncubadora({
 
   useEffect(() => {
     if (!isEditMode) {
-      const foundEquipment = findEquipmentByCode(equipment, formData.codigoActivo);
+      const foundEquipment = findEquipmentByCode(
+        equipment,
+        formData.codigoActivo
+      );
       if (foundEquipment) {
-        setFormData(prevState => ({
+        setFormData((prevState) => ({
           ...prevState,
           marca: foundEquipment.nombreaf,
           modelo: foundEquipment.descaf,
@@ -149,41 +172,37 @@ export default function FormularioMantenimientoIncubadora({
     }
   }, [equipment, formData.codigoActivo, isEditMode]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  useEffect(() => {
+    const isValid = Boolean(
+      formData.codigoActivo &&
+        formData.marca &&
+        formData.modelo &&
+        formData.ns &&
+        formData.sucursal &&
+        formData.regional &&
+        formData.lugar &&
+        formData.firmaMantenimiento &&
+        formData.firmaOperador
+    );
+    setIsFormValid(isValid);
+  }, [formData]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    if (name === "inspeccionAccesorios.cantidadAccesorios") {
-      const numAccesorios = Math.max(1, Math.min(6, parseInt(value) || 1));
-      const newAccesorios = [...formData.inspeccionAccesorios.accesorios];
-      while (newAccesorios.length < numAccesorios) {
-        newAccesorios.push({
-          modelo: "",
-          ns: "",
-          pruebaFuncionamiento: false,
-          interfazSinDaños: false,
-          cableConexionSinDaños: false,
-          conectorSinDaños: false,
-          limpiezaAdecuada: false,
-          sensorSinDaños: false,
-        });
-      }
-      setFormData(prevState => ({
-        ...prevState,
-        inspeccionAccesorios: {
-          ...prevState.inspeccionAccesorios,
-          cantidadAccesorios: numAccesorios.toString(),
-          accesorios: newAccesorios.slice(0, numAccesorios),
-        },
-      }));
-    } else {
-      setFormData(prevState => ({
-        ...prevState,
-        [name]: value,
-      }));
-    }
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
 
-  const handleCheckboxChange = (section: string, field: string, value: boolean) => {
-    setFormData(prevState => ({
+  const handleCheckboxChange = (
+    section: string,
+    field: string,
+    value: boolean
+  ) => {
+    setFormData((prevState) => ({
       ...prevState,
       [section]: {
         ...prevState[section],
@@ -193,11 +212,11 @@ export default function FormularioMantenimientoIncubadora({
   };
 
   const handleAccesorioChange = (index: number, field: string, value: any) => {
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
       inspeccionAccesorios: {
         ...prevState.inspeccionAccesorios,
-        accesorios: prevState.inspeccionAccesorios.accesorios.map((acc, i) => 
+        accesorios: prevState.inspeccionAccesorios.accesorios.map((acc, i) =>
           i === index ? { ...acc, [field]: value } : acc
         ),
       },
@@ -212,6 +231,8 @@ export default function FormularioMantenimientoIncubadora({
       costo: 0,
       estado: "Programado",
       typeForm: "Protocolo de Mantenimiento Incubadora ServoCuna Fototerapia",
+      regional: region,
+      ubicacion: ubicacion,
       inspeccionAccesorios: {
         ...formData.inspeccionAccesorios,
         accesorios: formData.inspeccionAccesorios.accesorios.slice(
@@ -221,6 +242,127 @@ export default function FormularioMantenimientoIncubadora({
       },
     };
     onSubmit(submittedData);
+    handlePrint();
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Formulario de Mantenimiento</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              h1, h2 { text-align: center; }
+              .section { margin-bottom: 20px; }
+              .section-title { font-weight: bold; margin-bottom: 10px; }
+              .item { display: flex; justify-content: space-between; }
+              .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
+              .signature-line { text-align: center; }
+            </style>
+          </head>
+          <body>
+            <img src="${logoCies}" alt="Logo CIES" style="width: 100px; display: block; margin: 0 auto;" />
+            <h1>COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
+            <h2>INCUBADORA - SERVOCUNA - FOTOTERAPIA</h2>
+            <div class="section">
+              <div class="section-title">DATOS DEL EQUIPO</div>
+              <div class="item"><span>Código de Activo:</span><span>${formData.codigoActivo}</span></div>
+              <div class="item"><span>Marca:</span><span>${formData.marca}</span></div>
+              <div class="item"><span>Modelo:</span><span>${formData.modelo}</span></div>
+              <div class="item"><span>N/S:</span><span>${formData.ns}</span></div>
+              <div class="item"><span>Garantía:</span><span>${formData.garantia ? "Sí" : "No"}</span></div>
+              <div class="item"><span>Tipo:</span><span>${formData.tipo}</span></div>
+              <div class="item"><span>Sucursal:</span><span>${formData.sucursal}</span></div>
+              <div class="item"><span>Regional:</span><span>${formData.regional}</span></div>
+              <div class="item"><span>Ubicación:</span><span>${formData.lugar}</span></div>
+            </div>
+            <div class="section">
+              <div class="section-title">1. INSPECCIÓN VISUAL</div>
+              ${Object.entries(formData.inspeccionVisual)
+                .map(
+                  ([key, value]) => `
+                <div class="item">
+                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                  <span>${value ? "Sí" : "No"}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">2. INSPECCIÓN ELÉCTRICA</div>
+              ${Object.entries(formData.inspeccionElectrica)
+                .map(
+                  ([key, value]) => `
+                <div class="item">
+                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                  <span>${value ? "Sí" : "No"}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">3. INSPECCIÓN FUNCIONAL</div>
+              ${Object.entries(formData.inspeccionFuncional)
+                .map(
+                  ([key, value]) => `
+                <div class="item">
+                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                  <span>${value ? "Sí" : "No"}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">4. INSPECCIÓN ACCESORIOS</div>
+              ${formData.inspeccionAccesorios.accesorios
+                .map(
+                  (accesorio, index) => `
+                <div class="item">
+                  <span>Accesorio ${index + 1}:</span>
+                  <span>${accesorio.modelo} - ${accesorio.ns}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">5. LIMPIEZA</div>
+              ${Object.entries(formData.limpieza)
+                .map(
+                  ([key, value]) => `
+                <div class="item">
+                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                  <span>${value ? "Sí" : "No"}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">OBSERVACIONES</div>
+              <p>${formData.observaciones}</p>
+            </div>
+            <div class="signatures">
+              <div class="signature-line">
+                <p>${formData.firmaMantenimiento}</p>
+                <p>Firma y Sello Mantenimiento</p>
+              </div>
+              <div class="signature-line">
+                <p>${formData.firmaOperador}</p>
+                <p>Firma y Sello Operador o encargado</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   return (
@@ -228,8 +370,12 @@ export default function FormularioMantenimientoIncubadora({
       <div className="flex justify-between items-start mb-6">
         <Image src={logoCies} alt="Logo CIES" width={100} height={50} />
         <div className="text-center flex-grow">
-          <h1 className="text-2xl font-bold">COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
-          <h2 className="text-xl font-semibold">INCUBADORA - SERVOCUNA - FOTOTERAPIA</h2>
+          <h1 className="text-2xl font-bold">
+            COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO
+          </h1>
+          <h2 className="text-xl font-semibold">
+            INCUBADORA - SERVOCUNA - FOTOTERAPIA
+          </h2>
         </div>
         <div className="text-right">
           <div className="mb-2">
@@ -260,7 +406,9 @@ export default function FormularioMantenimientoIncubadora({
         <h2 className="text-lg font-semibold mb-2">DATOS DEL EQUIPO:</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="codigoActivo">Código de Activo:</Label>
+            <Label htmlFor="codigoActivo" className="flex items-center">
+              Código de Activo: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="codigoActivo"
               name="codigoActivo"
@@ -269,15 +417,21 @@ export default function FormularioMantenimientoIncubadora({
             />
           </div>
           <div>
-            <Label htmlFor="marca">Marca:</Label>
+            <Label htmlFor="marca" className="flex items-center">
+              Marca: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="marca" name="marca" value={formData.marca} readOnly />
           </div>
           <div>
-            <Label htmlFor="modelo">Modelo:</Label>
+            <Label htmlFor="modelo" className="flex items-center">
+              Modelo: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="modelo" name="modelo" value={formData.modelo} readOnly />
           </div>
           <div>
-            <Label htmlFor="ns">N/S:</Label>
+            <Label htmlFor="ns" className="flex items-center">
+              N/S: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="ns" name="ns" value={formData.ns} readOnly />
           </div>
           <div>
@@ -285,7 +439,7 @@ export default function FormularioMantenimientoIncubadora({
             <YesNoOptions
               id="garantia"
               value={formData.garantia}
-              onChange={(value) => handleCheckboxChange('garantia', '', value)}
+              onChange={(value) => handleCheckboxChange("garantia", "", value)}
             />
           </div>
           <div>
@@ -303,7 +457,9 @@ export default function FormularioMantenimientoIncubadora({
             </select>
           </div>
           <div>
-            <Label htmlFor="sucursal">Sucursal:</Label>
+            <Label htmlFor="sucursal" className="flex items-center">
+              Sucursal: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="sucursal"
               name="sucursal"
@@ -312,13 +468,16 @@ export default function FormularioMantenimientoIncubadora({
             />
           </div>
           <div>
-            <Label htmlFor="regional">Regional:</Label>
-            <Input
-              id="regional"
-              name="regional"
-              value={formData.regional}
-              onChange={handleInputChange}
-            />
+            <Label htmlFor="regional" className="flex items-center">
+              Regional: <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Input id="regional" name="regional" value={region} readOnly />
+          </div>
+          <div>
+            <Label htmlFor="ubicacion" className="flex items-center">
+              Ubicación: <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Input id="ubicacion" name="ubicacion" value={ubicacion} readOnly />
           </div>
         </div>
       </section>
@@ -328,11 +487,18 @@ export default function FormularioMantenimientoIncubadora({
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(formData.inspeccionVisual).map(([key, value]) => (
             <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={key}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
               <YesNoOptions
                 id={key}
                 value={value}
-                onChange={(newValue) => handleCheckboxChange('inspeccionVisual', key, newValue)}
+                onChange={(newValue) =>
+                  handleCheckboxChange("inspeccionVisual", key, newValue)
+                }
               />
             </div>
           ))}
@@ -341,27 +507,40 @@ export default function FormularioMantenimientoIncubadora({
 
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">2. INSPECCIÓN ELÉCTRICA</h2>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           {Object.entries(formData.inspeccionElectrica).map(([key, value]) => (
             <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={key}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
-              {typeof value === 'boolean' ? (
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
+              {typeof value === "boolean" ? (
                 <YesNoOptions
                   id={key}
                   value={value}
-                  onChange={(newValue) => handleCheckboxChange('inspeccionElectrica', key, newValue)}
+                  onChange={(newValue) =>
+                    handleCheckboxChange("inspeccionElectrica", key, newValue)
+                  }
                 />
               ) : (
                 <Input
                   id={key}
                   name={`inspeccionElectrica.${key}`}
                   value={value}
-                  onChange={(e) => handleCheckboxChange('inspeccionElectrica', key, e.target.checked)}
+                  onChange={(e) =>
+                    handleCheckboxChange(
+                      "inspeccionElectrica",
+                      key,
+                      e.target.checked
+                    )
+                  }
                   className="w-40"
                 />
               )}
-              </div>
-            ))}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -370,19 +549,32 @@ export default function FormularioMantenimientoIncubadora({
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(formData.inspeccionFuncional).map(([key, value]) => (
             <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={key}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
-              {typeof value === 'boolean' ? (
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
+              {typeof value === "boolean" ? (
                 <YesNoOptions
                   id={key}
                   value={value}
-                  onChange={(newValue) => handleCheckboxChange('inspeccionFuncional', key, newValue)}
+                  onChange={(newValue) =>
+                    handleCheckboxChange("inspeccionFuncional", key, newValue)
+                  }
                 />
               ) : (
                 <Input
                   id={key}
                   name={`inspeccionFuncional.${key}`}
                   value={value}
-                  onChange={(e) => handleCheckboxChange('inspeccionFuncional', key, e.target.checked)}
+                  onChange={(e) =>
+                    handleCheckboxChange(
+                      "inspeccionFuncional",
+                      key,
+                      e.target.checked
+                    )
+                  }
                   className="w-40"
                 />
               )}
@@ -407,58 +599,84 @@ export default function FormularioMantenimientoIncubadora({
             />
           </div>
         </div>
-        {formData.inspeccionAccesorios.accesorios.slice(0, parseInt(formData.inspeccionAccesorios.cantidadAccesorios)).map((accesorio, index) => (
-          <div key={index} className="border p-4 mb-4 rounded">
-            <h3 className="font-semibold mb-2">ACCESORIO {index + 1}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`accesorio-${index}-modelo`}>Modelo:</Label>
-                <Input
-                  id={`accesorio-${index}-modelo`}
-                  value={accesorio.modelo}
-                  onChange={(e) => handleAccesorioChange(index, 'modelo', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`accesorio-${index}-ns`}>N/S:</Label>
-                <Input
-                  id={`accesorio-${index}-ns`}
-                  value={accesorio.ns}
-                  onChange={(e) => handleAccesorioChange(index, 'ns', e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {Object.entries(accesorio).map(([key, value]) => {
-                if (typeof value === 'boolean') {
-                  return (
-                    <div key={key} className="flex justify-between items-center">
-                      <Label htmlFor={`accesorio-${index}-${key}`}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
-                  <YesNoOptions
-                        id={`accesorio-${index}-${key}`}
-                        value={value}
-                        onChange={(newValue) => handleAccesorioChange(index, key, newValue)}
+        {formData.inspeccionAccesorios.accesorios
+          .slice(0, parseInt(formData.inspeccionAccesorios.cantidadAccesorios))
+          .map((accesorio, index) => (
+            <div key={index} className="border p-4 mb-4 rounded">
+              <h3 className="font-semibold mb-2">ACCESORIO {index + 1}</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor={`accesorio-${index}-modelo`}>Modelo:</Label>
+                  <Input
+                    id={`accesorio-${index}-modelo`}
+                    value={accesorio.modelo}
+                    onChange={(e) =>
+                      handleAccesorioChange(index, "modelo", e.target.value)
+                    }
                   />
                 </div>
-                  );
-                }
-                return null;
-              })}
+                <div>
+                  <Label htmlFor={`accesorio-${index}-ns`}>N/S:</Label>
+                  <Input
+                    id={`accesorio-${index}-ns`}
+                    value={accesorio.ns}
+                    onChange={(e) =>
+                      handleAccesorioChange(index, "ns", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                {Object.entries(accesorio).map(([key, value]) => {
+                  if (typeof value === "boolean") {
+                    return (
+                      <div
+                        key={key}
+                        className="flex justify-between items-center"
+                      >
+                        <Label htmlFor={`accesorio-${index}-${key}`}>
+                          {key
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/^./, (str) => str.toUpperCase())}
+                          :
+                        </Label>
+                        <YesNoOptions
+                          id={`accesorio-${index}-${key}`}
+                          value={value}
+                          onChange={(newValue) =>
+                            handleAccesorioChange(index, key, newValue)
+                          }
+                        />
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">5. LIMPIEZA (Solo si fuese necesario) (2da Columna mantenimiento anual)</h2>
+        <h2 className="text-lg font-semibold mb-2">
+          5. LIMPIEZA (Solo si fuese necesario) (2da Columna mantenimiento
+          anual)
+        </h2>
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(formData.limpieza).map(([key, value]) => (
             <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={`limpieza-${key}`}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
+              <Label htmlFor={`limpieza-${key}`}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
               <YesNoOptions
                 id={`limpieza-${key}`}
                 value={value}
-                onChange={(newValue) => handleCheckboxChange('limpieza', key, newValue)}
+                onChange={(newValue) =>
+                  handleCheckboxChange("limpieza", key, newValue)
+                }
               />
             </div>
           ))}
@@ -478,7 +696,10 @@ export default function FormularioMantenimientoIncubadora({
 
       <section className="flex justify-between">
         <div className="w-1/2 pr-2">
-          <Label htmlFor="firmaMantenimiento">Firma y Sello Mantenimiento:</Label>
+          <Label htmlFor="firmaMantenimiento" className="flex items-center">
+            Firma y Sello Mantenimiento:{" "}
+            <span className="text-red-500 ml-1">*</span>
+          </Label>
           <Input
             id="firmaMantenimiento"
             name="firmaMantenimiento"
@@ -488,7 +709,10 @@ export default function FormularioMantenimientoIncubadora({
           />
         </div>
         <div className="w-1/2 pl-2">
-          <Label htmlFor="firmaOperador">Firma y Sello Operador o encargado:</Label>
+          <Label htmlFor="firmaOperador" className="flex items-center">
+            Firma y Sello Operador o encargado:{" "}
+            <span className="text-red-500 ml-1">*</span>
+          </Label>
           <Input
             id="firmaOperador"
             name="firmaOperador"
@@ -500,9 +724,19 @@ export default function FormularioMantenimientoIncubadora({
       </section>
 
       <div className="mt-6 text-center">
-        <Button type="button" onClick={handleSubmit}>
-          Enviar Formulario de Mantenimiento
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!isFormValid}
+          className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
+        >
+          Enviar e Imprimir Formulario de Mantenimiento
         </Button>
+      </div>
+
+      <div className="mt-4 text-sm text-gray-500 text-center">
+        Los campos marcados con <span className="text-red-500">*</span> son
+        obligatorios
       </div>
     </div>
   );

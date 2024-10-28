@@ -9,6 +9,8 @@ import { Textarea } from "../ui/textarea";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
 import logoCies from "../../../public/icon.png";
+import { format, addMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
 const YesNoOptions = ({
   id,
@@ -54,11 +56,15 @@ export default function FormularioMantenimientoEcografo({
   onSubmit,
   initialData,
   isEditMode = false,
+  region,
+  ubicacion,
 }: {
   equipment: EquipmentDetail[];
   onSubmit: (data: any) => void;
   initialData: any;
   isEditMode: boolean;
+  region: string;
+  ubicacion: string;
 }) {
   const [formData, setFormData] = useState({
     codigoActivo: "",
@@ -68,7 +74,7 @@ export default function FormularioMantenimientoEcografo({
     garantia: false,
     swVer: "",
     sucursal: "",
-    regional: "",
+    regional: region,
     lugar: "",
     fecha: "",
     inspeccionVisual: {
@@ -122,6 +128,7 @@ export default function FormularioMantenimientoEcografo({
     },
     inspeccionAccesorios: {
       cantidadTransductores: "1",
+      cantidadImpresoras: "1",
       cantidadPuertos: "",
       transductores: [
         {
@@ -141,17 +148,6 @@ export default function FormularioMantenimientoEcografo({
           modelo: "",
           ns: "",
           impresionOptima: false,
-          nivelBrillo: "",
-          nivelContraste: "",
-          tipoPapel: "",
-          conexion: "",
-          feedActivado: false,
-        },
-        {
-          codigo: "",
-          modelo: "",
-          ns: "",
-          impresionComplacencia: false,
           nivelBrillo: "",
           nivelContraste: "",
           tipoPapel: "",
@@ -179,11 +175,16 @@ export default function FormularioMantenimientoEcografo({
       funcionamientoAlmacenamiento: false,
       funcionamientoImpresion: false,
       detallesConexion: "",
+      ipEquipo: "",
+      ipAlmacenamiento: "",
+      ipWorklist: "",
     },
     observaciones: "",
     firmaMantenimiento: "",
     firmaOperador: "",
   });
+
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
     if (isEditMode && initialData) {
@@ -194,7 +195,10 @@ export default function FormularioMantenimientoEcografo({
         codigoActivo: details.equipo || "",
         inspeccionAccesorios: {
           ...details.inspeccionAccesorios,
-          cantidadTransductores: details.inspeccionAccesorios.cantidadTransductores || "1",
+          cantidadTransductores:
+            details.inspeccionAccesorios.cantidadTransductores || "1",
+          cantidadImpresoras:
+            details.inspeccionAccesorios.cantidadImpresoras || "1",
           transductores: details.inspeccionAccesorios.transductores || [
             {
               modelo: "",
@@ -205,6 +209,19 @@ export default function FormularioMantenimientoEcografo({
               interfazGoma: false,
               limpiezaAdecuada: false,
               cableConexion: false,
+            },
+          ],
+          impresoras: details.inspeccionAccesorios.impresoras || [
+            {
+              codigo: "",
+              modelo: "",
+              ns: "",
+              impresionOptima: false,
+              nivelBrillo: "",
+              nivelContraste: "",
+              tipoPapel: "",
+              conexion: "",
+              feedActivado: false,
             },
           ],
         },
@@ -228,6 +245,21 @@ export default function FormularioMantenimientoEcografo({
       }
     }
   }, [equipment, formData.codigoActivo, isEditMode]);
+
+  useEffect(() => {
+    const isValid = Boolean(
+      formData.codigoActivo &&
+        formData.marca &&
+        formData.modelo &&
+        formData.ns &&
+        formData.sucursal &&
+        formData.regional &&
+        formData.lugar &&
+        formData.firmaMantenimiento &&
+        formData.firmaOperador
+    );
+    setIsFormValid(isValid);
+  }, [formData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -254,6 +286,30 @@ export default function FormularioMantenimientoEcografo({
           ...prevState.inspeccionAccesorios,
           cantidadTransductores: numTransductores.toString(),
           transductores: newTransductores.slice(0, numTransductores),
+        },
+      }));
+    } else if (name === "inspeccionAccesorios.cantidadImpresoras") {
+      const numImpresoras = Math.max(1, Math.min(9, parseInt(value) || 1));
+      const newImpresoras = [...formData.inspeccionAccesorios.impresoras];
+      while (newImpresoras.length < numImpresoras) {
+        newImpresoras.push({
+          codigo: "",
+          modelo: "",
+          ns: "",
+          impresionOptima: false,
+          nivelBrillo: "",
+          nivelContraste: "",
+          tipoPapel: "",
+          conexion: "",
+          feedActivado: false,
+        });
+      }
+      setFormData((prevState) => ({
+        ...prevState,
+        inspeccionAccesorios: {
+          ...prevState.inspeccionAccesorios,
+          cantidadImpresoras: numImpresoras.toString(),
+          impresoras: newImpresoras.slice(0, numImpresoras),
         },
       }));
     } else {
@@ -320,9 +376,206 @@ export default function FormularioMantenimientoEcografo({
           0,
           parseInt(formData.inspeccionAccesorios.cantidadTransductores)
         ),
+        impresoras: formData.inspeccionAccesorios.impresoras.slice(
+          0,
+          parseInt(formData.inspeccionAccesorios.cantidadImpresoras)
+        ),
       },
     };
     onSubmit(submittedData);
+    handlePrint();
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    const fechaVigencia = format(addMonths(new Date(), 1), "dd/MM/yyyy", {
+      locale: es,
+    });
+
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Protocolo de Mantenimiento - Ecógrafo</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px;
+                line-height: 1.6;
+              }
+              .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: start;
+                margin-bottom: 20px;
+              }
+              .logo {
+                width: 100px;
+              }
+              .title {
+                text-align: center;
+                flex-grow: 1;
+                margin: 0 20px;
+              }
+              .date-info {
+                text-align: right;
+              }
+              .section {
+                margin-bottom: 20px;
+              }
+              .section-title {
+                font-weight: bold;
+                margin-bottom: 10px;
+                background-color: #f5f5f5;
+                padding: 5px;
+              }
+              .grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+              }
+              .item {
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 1px solid #eee;
+                padding: 5px 0;
+              }
+              .signatures {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 50px;
+              }
+              .signature-line {
+                width: 200px;
+                text-align: center;
+                border-top: 1px solid black;
+                padding-top: 5px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <img src="${logoCies.src}" alt="Logo CIES" class="logo" />
+              <div class="title">
+                <h1>COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
+                <h2>ECÓGRAFO</h2>
+                <p>Vigencia desde: ${fechaVigencia}</p>
+              </div>
+              <div class="date-info">
+                <p>Lugar: ${formData.lugar}</p>
+                <p>Fecha: ${formData.fecha}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">DATOS DEL EQUIPO</div>
+              <div class="grid">
+                <div class="item">
+                  <span>Código de Activo:</span>
+                  <span>${formData.codigoActivo}</span>
+                </div>
+                <div class="item">
+                  <span>Marca:</span>
+                  <span>${formData.marca}</span>
+                </div>
+                <div class="item">
+                  <span>Modelo:</span>
+                  <span>${formData.modelo}</span>
+                </div>
+                <div class="item">
+                  <span>N/S:</span>
+                  <span>${formData.ns}</span>
+                </div>
+                <div class="item">
+                  <span>Garantía:</span>
+                  <span>${formData.garantia ? "Sí" : "No"}</span>
+                </div>
+                <div class="item">
+                  <span>Sucursal:</span>
+                  <span>${formData.sucursal}</span>
+                </div>
+                <div class="item">
+                  <span>Regional:</span>
+                  <span>${formData.regional}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">1. INSPECCIÓN VISUAL</div>
+              <div class="grid">
+                ${Object.entries(formData.inspeccionVisual)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">2. INSPECCIÓN ELÉCTRICA</div>
+              <div class="grid">
+                ${Object.entries(formData.inspeccionElectrica)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">3. INSPECCIÓN FUNCIONAL</div>
+              <div class="grid">
+                ${Object.entries(formData.inspeccionFuncional)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">OBSERVACIONES</div>
+              <p>${formData.observaciones}</p>
+            </div>
+
+            <div class="signatures">
+              <div class="signature-line">
+                <p>${formData.firmaMantenimiento}</p>
+                <p>Firma y Sello Mantenimiento</p>
+              </div>
+              <div class="signature-line">
+                <p>${formData.firmaOperador}</p>
+                <p>Firma y Sello Operador o encargado</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   return (
@@ -337,7 +590,9 @@ export default function FormularioMantenimientoEcografo({
         </div>
         <div className="text-right">
           <div className="mb-2">
-            <Label htmlFor="lugar">Lugar:</Label>
+            <Label htmlFor="lugar" className="flex items-center">
+              Lugar: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="lugar"
               name="lugar"
@@ -364,7 +619,9 @@ export default function FormularioMantenimientoEcografo({
         <h2 className="text-lg font-semibold mb-2">DATOS DEL EQUIPO:</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="codigoActivo">Código de Activo:</Label>
+            <Label htmlFor="codigoActivo" className="flex items-center">
+              Código de Activo: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="codigoActivo"
               name="codigoActivo"
@@ -373,15 +630,21 @@ export default function FormularioMantenimientoEcografo({
             />
           </div>
           <div>
-            <Label htmlFor="marca">Marca:</Label>
+            <Label htmlFor="marca" className="flex items-center">
+              Marca: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="marca" name="marca" value={formData.marca} readOnly />
           </div>
           <div>
-            <Label htmlFor="modelo">Modelo:</Label>
+            <Label htmlFor="modelo" className="flex items-center">
+              Modelo: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="modelo" name="modelo" value={formData.modelo} readOnly />
           </div>
           <div>
-            <Label htmlFor="ns">N/S:</Label>
+            <Label htmlFor="ns" className="flex items-center">
+              N/S: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="ns" name="ns" value={formData.ns} readOnly />
           </div>
           <div>
@@ -402,7 +665,9 @@ export default function FormularioMantenimientoEcografo({
             />
           </div>
           <div>
-            <Label htmlFor="sucursal">Sucursal:</Label>
+            <Label htmlFor="sucursal" className="flex items-center">
+              Sucursal: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="sucursal"
               name="sucursal"
@@ -411,13 +676,16 @@ export default function FormularioMantenimientoEcografo({
             />
           </div>
           <div>
-            <Label htmlFor="regional">Regional:</Label>
-            <Input
-              id="regional"
-              name="regional"
-              value={formData.regional}
-              onChange={handleInputChange}
-            />
+            <Label htmlFor="regional" className="flex items-center">
+              Regional: <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Input id="regional" name="regional" value={region} readOnly />
+          </div>
+          <div>
+            <Label htmlFor="ubicacion" className="flex items-center">
+              Ubicación: <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Input id="ubicacion" name="ubicacion" value={ubicacion} readOnly />
           </div>
         </div>
       </section>
@@ -541,6 +809,18 @@ export default function FormularioMantenimientoEcografo({
             />
           </div>
           <div>
+            <Label htmlFor="cantidadImpresoras">Cantidad de Impresoras:</Label>
+            <Input
+              id="cantidadImpresoras"
+              name="inspeccionAccesorios.cantidadImpresoras"
+              type="number"
+              min="1"
+              max="9"
+              value={formData.inspeccionAccesorios.cantidadImpresoras}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
             <Label htmlFor="cantidadPuertos">Cantidad de Puertos:</Label>
             <Input
               id="cantidadPuertos"
@@ -550,8 +830,12 @@ export default function FormularioMantenimientoEcografo({
             />
           </div>
         </div>
-        {formData.inspeccionAccesorios.transductores.slice(0, parseInt(formData.inspeccionAccesorios.cantidadTransductores)).map(
-          (transductor, index) => (
+        {formData.inspeccionAccesorios.transductores
+          .slice(
+            0,
+            parseInt(formData.inspeccionAccesorios.cantidadTransductores)
+          )
+          .map((transductor, index) => (
             <div key={index} className="border p-4 mb-4 rounded">
               <h3 className="font-semibold mb-2">TRANSDUCTOR {index + 1}</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -614,42 +898,43 @@ export default function FormularioMantenimientoEcografo({
                 })}
               </div>
             </div>
-          )
-        )}
-        {formData.inspeccionAccesorios.impresoras.map((impresora, index) => (
-          <div key={index} className="border p-4 mb-4 rounded">
-            <h3 className="font-semibold mb-2">IMPRESORA {index + 1}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(impresora).map(([key, value]) => (
-                <div key={key}>
-                  <Label htmlFor={`impresora-${index}-${key}`}>
-                    {key
-                      .replace(/([A-Z])/g, " $1")
-                      .replace(/^./, (str) => str.toUpperCase())}
-                    :
-                  </Label>
-                  {typeof value === "boolean" ? (
-                    <YesNoOptions
-                      id={`impresora-${index}-${key}`}
-                      value={value}
-                      onChange={(newValue) =>
-                        handleImpresoraChange(index, key, newValue)
-                      }
-                    />
-                  ) : (
-                    <Input
-                      id={`impresora-${index}-${key}`}
-                      value={value}
-                      onChange={(e) =>
-                        handleImpresoraChange(index, key, e.target.value)
-                      }
-                    />
-                  )}
-                </div>
-              ))}
+          ))}
+        {formData.inspeccionAccesorios.impresoras
+          .slice(0, parseInt(formData.inspeccionAccesorios.cantidadImpresoras))
+          .map((impresora, index) => (
+            <div key={index} className="border p-4 mb-4 rounded">
+              <h3 className="font-semibold mb-2">IMPRESORA {index + 1}</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {Object.entries(impresora).map(([key, value]) => (
+                  <div key={key}>
+                    <Label htmlFor={`impresora-${index}-${key}`}>
+                      {key
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())}
+                      :
+                    </Label>
+                    {typeof value === "boolean" ? (
+                      <YesNoOptions
+                        id={`impresora-${index}-${key}`}
+                        value={value}
+                        onChange={(newValue) =>
+                          handleImpresoraChange(index, key, newValue)
+                        }
+                      />
+                    ) : (
+                      <Input
+                        id={`impresora-${index}-${key}`}
+                        value={value}
+                        onChange={(e) =>
+                          handleImpresoraChange(index, key, e.target.value)
+                        }
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </section>
 
       <section className="mb-6">
@@ -726,8 +1011,9 @@ export default function FormularioMantenimientoEcografo({
 
       <section className="flex justify-between">
         <div className="w-1/2 pr-2">
-          <Label htmlFor="firmaMantenimiento">
-            Firma y Sello Mantenimiento:
+          <Label htmlFor="firmaMantenimiento" className="flex items-center">
+            Firma y Sello Mantenimiento:{" "}
+            <span className="text-red-500 ml-1">*</span>
           </Label>
           <Input
             id="firmaMantenimiento"
@@ -738,8 +1024,9 @@ export default function FormularioMantenimientoEcografo({
           />
         </div>
         <div className="w-1/2 pl-2">
-          <Label htmlFor="firmaOperador">
-            Firma y Sello Operador o encargado:
+          <Label htmlFor="firmaOperador" className="flex items-center">
+            Firma y Sello Operador o encargado:{" "}
+            <span className="text-red-500 ml-1">*</span>
           </Label>
           <Input
             id="firmaOperador"
@@ -752,9 +1039,19 @@ export default function FormularioMantenimientoEcografo({
       </section>
 
       <div className="mt-6 text-center">
-        <Button type="button" onClick={handleSubmit}>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!isFormValid}
+          className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
+        >
           Enviar Formulario de Mantenimiento
         </Button>
+      </div>
+
+      <div className="mt-4 text-sm text-gray-500 text-center">
+        Los campos marcados con <span className="text-red-500">*</span> son
+        obligatorios
       </div>
     </div>
   );

@@ -9,6 +9,8 @@ import { Textarea } from "../ui/textarea";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
 import logoCies from "../../../public/icon.png";
+import { format, addMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
 const YesNoOptions = ({
   id,
@@ -54,11 +56,15 @@ export default function FormularioMantenimientoLaparoscopia({
   onSubmit,
   initialData,
   isEditMode = false,
+  region,
+  ubicacion,
 }: {
   equipment: EquipmentDetail[];
   onSubmit: (data: any) => void;
   initialData: any;
   isEditMode: boolean;
+  region: string;
+  ubicacion: string;
 }) {
   const [formData, setFormData] = useState({
     codigoActivo: "",
@@ -68,8 +74,8 @@ export default function FormularioMantenimientoLaparoscopia({
     garantia: false,
     swVer: "",
     sucursal: "",
-    regional: "",
-    lugar: "",
+    regional: region,
+    lugar: ubicacion,
     fecha: "",
     inspeccionVisual: {
       equipoDañosFisicos: false,
@@ -197,6 +203,8 @@ export default function FormularioMantenimientoLaparoscopia({
     firmaOperador: "",
   });
 
+  const [isFormValid, setIsFormValid] = useState(false);
+
   useEffect(() => {
     if (isEditMode && initialData) {
       const details = JSON.parse(initialData.details);
@@ -224,6 +232,21 @@ export default function FormularioMantenimientoLaparoscopia({
       }
     }
   }, [equipment, formData.codigoActivo, isEditMode]);
+
+  useEffect(() => {
+    const isValid = Boolean(
+      formData.codigoActivo &&
+        formData.marca &&
+        formData.modelo &&
+        formData.ns &&
+        formData.sucursal &&
+        formData.regional &&
+        formData.lugar &&
+        formData.firmaMantenimiento &&
+        formData.firmaOperador
+    );
+    setIsFormValid(isValid);
+  }, [formData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -273,9 +296,224 @@ export default function FormularioMantenimientoLaparoscopia({
       equipo: formData.codigoActivo,
       costo: 0,
       estado: "Programado",
-      typeForm: "Protocolo de Mantenimiento Torre Laparoscopia",
+      typeForm: "Protocolo Mantenimiento Torre Laparoscopia",
+      regional: region,
+      ubicacion: ubicacion,
     };
     onSubmit(submittedData);
+    handlePrint();
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    const fechaVigencia = format(addMonths(new Date(), 1), "dd/MM/yyyy", {
+      locale: es,
+    });
+
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Protocolo de Mantenimiento - Torre Laparoscopia</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px;
+                line-height: 1.6;
+              }
+              .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: start;
+                margin-bottom: 20px;
+              }
+              .logo {
+                width: 100px;
+              }
+              .title {
+                text-align: center;
+                flex-grow: 1;
+                margin: 0 20px;
+              }
+              .date-info {
+                text-align: right;
+              }
+              .section {
+                margin-bottom: 20px;
+              }
+              .section-title {
+                font-weight: bold;
+                margin-bottom: 10px;
+                background-color: #f5f5f5;
+                padding: 5px;
+              }
+              .grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+              }
+              .item {
+                display: flex;
+                justify-content: space-between;
+              }
+              .signatures {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 40px;
+              }
+              .signature-line {
+                text-align: center;
+                border-top: 1px solid #000;
+                width: 45%;
+                padding-top: 5px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <img src="${logoCies}" alt="Logo CIES" class="logo" />
+              <div class="title">
+                <h1>COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
+                <h2>TORRE DE LAPAROSCOPIA</h2>
+              </div>
+              <div class="date-info">
+                <p>Lugar: ${formData.lugar}</p>
+                <p>Fecha: ${formData.fecha}</p>
+                <p>Vigencia: ${fechaVigencia}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">DATOS DEL EQUIPO</div>
+              <div class="grid">
+                <div class="item"><span>Código de Activo:</span><span>${formData.codigoActivo}</span></div>
+                <div class="item"><span>Marca:</span><span>${formData.marca}</span></div>
+                <div class="item"><span>Modelo:</span><span>${formData.modelo}</span></div>
+                <div class="item"><span>N/S:</span><span>${formData.ns}</span></div>
+                <div class="item"><span>Garantía:</span><span>${formData.garantia ? "Sí" : "No"}</span></div>
+                <div class="item"><span>Sucursal:</span><span>${formData.sucursal}</span></div>
+                <div class="item"><span>Regional:</span><span>${formData.regional}</span></div>
+                <div class="item"><span>Ubicación:</span><span>${formData.lugar}</span></div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">1. INSPECCIÓN VISUAL</div>
+              <div class="grid">
+                ${Object.entries(formData.inspeccionVisual)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">2. INSPECCIÓN ELÉCTRICA</div>
+              <div class="grid">
+                ${Object.entries(formData.inspeccionElectrica)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">3. INSPECCIÓN FUNCIONAL</div>
+              <div class="grid">
+                ${Object.entries(formData.inspeccionFuncional)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">4. INSPECCIÓN ACCESORIOS</div>
+              <div class="grid">
+                ${Object.entries(formData.inspeccionAccesorios)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">5. LIMPIEZA</div>
+              <div class="grid">
+                ${Object.entries(formData.limpieza)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">6. CONEXIÓN AUDITORIO</div>
+              <div class="grid">
+                ${Object.entries(formData.conexionAuditorio)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">OBSERVACIONES</div>
+              <p>${formData.observaciones}</p>
+            </div>
+
+            <div class="signatures">
+              <div class="signature-line">
+                <p>${formData.firmaMantenimiento}</p>
+                <p>Firma y Sello Mantenimiento</p>
+              </div>
+              <div class="signature-line">
+                <p>${formData.firmaOperador}</p>
+                <p>Firma y Sello Operador o encargado</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   return (
@@ -317,7 +555,9 @@ export default function FormularioMantenimientoLaparoscopia({
         <h2 className="text-lg font-semibold mb-2">DATOS DEL EQUIPO:</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="codigoActivo">Código de Activo:</Label>
+            <Label htmlFor="codigoActivo" className="flex items-center">
+              Código de Activo: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="codigoActivo"
               name="codigoActivo"
@@ -326,15 +566,21 @@ export default function FormularioMantenimientoLaparoscopia({
             />
           </div>
           <div>
-            <Label htmlFor="marca">Marca:</Label>
+            <Label htmlFor="marca" className="flex items-center">
+              Marca: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="marca" name="marca" value={formData.marca} readOnly />
           </div>
           <div>
-            <Label htmlFor="modelo">Modelo:</Label>
+            <Label htmlFor="modelo" className="flex items-center">
+              Modelo: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="modelo" name="modelo" value={formData.modelo} readOnly />
           </div>
           <div>
-            <Label htmlFor="ns">N/S:</Label>
+            <Label htmlFor="ns" className="flex items-center">
+              N/S: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input id="ns" name="ns" value={formData.ns} readOnly />
           </div>
           <div>
@@ -355,7 +601,9 @@ export default function FormularioMantenimientoLaparoscopia({
             />
           </div>
           <div>
-            <Label htmlFor="sucursal">Sucursal:</Label>
+            <Label htmlFor="sucursal" className="flex items-center">
+              Sucursal: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="sucursal"
               name="sucursal"
@@ -364,13 +612,16 @@ export default function FormularioMantenimientoLaparoscopia({
             />
           </div>
           <div>
-            <Label htmlFor="regional">Regional:</Label>
-            <Input
-              id="regional"
-              name="regional"
-              value={formData.regional}
-              onChange={handleInputChange}
-            />
+            <Label htmlFor="regional" className="flex items-center">
+              Regional: <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Input id="regional" name="regional" value={region} readOnly />
+          </div>
+          <div>
+            <Label htmlFor="ubicacion" className="flex items-center">
+              Ubicación: <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Input id="ubicacion" name="ubicacion" value={ubicacion} readOnly />
           </div>
         </div>
       </section>
@@ -478,75 +729,259 @@ export default function FormularioMantenimientoLaparoscopia({
 
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">4. INSPECCIÓN ACCESORIOS</h2>
-        <div>
-          <Label htmlFor="cantidadEquiposAccesorios">
-            Cantidad de equipos/accesorios:
-          </Label>
-          <Input
-            id="cantidadEquiposAccesorios"
-            name="inspeccionAccesorios.cantidadEquiposAccesorios"
-            value={formData.inspeccionAccesorios.cantidadEquiposAccesorios}
-            onChange={(e) =>
-              handleCheckboxChange(
-                "inspeccionAccesorios",
-                "cantidadEquiposAccesorios",
-                e.target.checked
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">CÁMARA</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(formData.inspeccionAccesorios.camara).map(
+              ([key, value]) => (
+                <div key={key} className="flex justify-between items-center">
+                  <Label htmlFor={`camara-${key}`}>
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                    :
+                  </Label>
+                  {typeof value === "boolean" ? (
+                    <YesNoOptions
+                      id={`camara-${key}`}
+                      value={value}
+                      onChange={(newValue) =>
+                        handleAccesorioChange("camara", key, newValue)
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={`camara-${key}`}
+                      value={value}
+                      onChange={(e) =>
+                        handleAccesorioChange("camara", key, e.target.value)
+                      }
+                      className="w-40"
+                    />
+                  )}
+                </div>
               )
-            }
-            className="w-40"
-          />
-        </div>
-        {[
-          "camara",
-          "videoProcesador",
-          "fuenteLuz",
-          "insuflador",
-          "grabador",
-          "monitor1",
-          "monitor2",
-        ].map((accesorio) => (
-          <div key={accesorio} className="border p-4 mb-4 rounded">
-            <h3 className="font-semibold mb-2">{accesorio.toUpperCase()}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(formData.inspeccionAccesorios[accesorio]).map(
-                ([key, value]) => (
-                  <div key={key} className="flex justify-between items-center">
-                    <Label htmlFor={`${accesorio}-${key}`}>
-                      {key
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
-                      :
-                    </Label>
-                    {typeof value === "boolean" ? (
-                      <YesNoOptions
-                        id={`${accesorio}-${key}`}
-                        value={value}
-                        onChange={(newValue) =>
-                          handleAccesorioChange(accesorio, key, newValue)
-                        }
-                      />
-                    ) : (
-                      <Input
-                        id={`${accesorio}-${key}`}
-                        value={
-                          value as
-                            | string
-                            | number
-                            | readonly string[]
-                            | undefined
-                        }
-                        onChange={(e) =>
-                          handleAccesorioChange(accesorio, key, e.target.value)
-                        }
-                        className="w-40"
-                      />
-                    )}
-                  </div>
-                )
-              )}
-            </div>
+            )}
           </div>
-        ))}
+        </div>
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">VIDEO PROCESADOR</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(formData.inspeccionAccesorios.videoProcesador).map(
+              ([key, value]) => (
+                <div key={key} className="flex justify-between items-center">
+                  <Label htmlFor={`videoProcesador-${key}`}>
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                    :
+                  </Label>
+                  {typeof value === "boolean" ? (
+                    <YesNoOptions
+                      id={`videoProcesador-${key}`}
+                      value={value}
+                      onChange={(newValue) =>
+                        handleAccesorioChange(
+                          "videoProcesador",
+                          key,
+                          newValue
+                        )
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={`videoProcesador-${key}`}
+                      value={value}
+                      onChange={(e) =>
+                        handleAccesorioChange(
+                          "videoProcesador",
+                          key,
+                          e.target.value
+                        )
+                      }
+                      className="w-40"
+                    />
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </div>
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">FUENTE DE LUZ</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(formData.inspeccionAccesorios.fuenteLuz).map(
+              ([key, value]) => (
+                <div key={key} className="flex justify-between items-center">
+                  <Label htmlFor={`fuenteLuz-${key}`}>
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                    :
+                  </Label>
+                  {typeof value === "boolean" ? (
+                    <YesNoOptions
+                      id={`fuenteLuz-${key}`}
+                      value={value}
+                      onChange={(newValue) =>
+                        handleAccesorioChange("fuenteLuz", key, newValue)
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={`fuenteLuz-${key}`}
+                      value={value}
+                      onChange={(e) =>
+                        handleAccesorioChange("fuenteLuz", key, e.target.value)
+                      }
+                      className="w-40"
+                    />
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </div>
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">INSUFLADOR</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(formData.inspeccionAccesorios.insuflador).map(
+              ([key, value]) => (
+                <div key={key} className="flex justify-between items-center">
+                  <Label htmlFor={`insuflador-${key}`}>
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                    :
+                  </Label>
+                  {typeof value === "boolean" ? (
+                    <YesNoOptions
+                      id={`insuflador-${key}`}
+                      value={value}
+                      onChange={(newValue) =>
+                        handleAccesorioChange("insuflador", key, newValue)
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={`insuflador-${key}`}
+                      value={value}
+                      onChange={(e) =>
+                        handleAccesorioChange("insuflador", key, e.target.value)
+                      }
+                      className="w-40"
+                    />
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </div>
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">GRABADOR</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(formData.inspeccionAccesorios.grabador).map(
+              ([key, value]) => (
+                <div key={key} className="flex justify-between items-center">
+                  <Label htmlFor={`grabador-${key}`}>
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                    :
+                  </Label>
+                  {typeof value === "boolean" ? (
+                    <YesNoOptions
+                      id={`grabador-${key}`}
+                      value={value}
+                      onChange={(newValue) =>
+                        handleAccesorioChange("grabador", key, newValue)
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={`grabador-${key}`}
+                      value={value}
+                      onChange={(e) =>
+                        handleAccesorioChange("grabador", key, e.target.value)
+                      }
+                      className="w-40"
+                    />
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </div>
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">MONITOR 1</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(formData.inspeccionAccesorios.monitor1).map(
+              ([key, value]) => (
+                <div key={key} className="flex justify-between items-center">
+                  <Label htmlFor={`monitor1-${key}`}>
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                    :
+                  </Label>
+                  {typeof value === "boolean" ? (
+                    <YesNoOptions
+                      id={`monitor1-${key}`}
+                      value={value}
+                      onChange={(newValue) =>
+                        handleAccesorioChange("monitor1", key, newValue)
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={`monitor1-${key}`}
+                      value={value}
+                      onChange={(e) =>
+                        handleAccesorioChange("monitor1", key, e.target.value)
+                      }
+                      className="w-40"
+                    />
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </div>
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">MONITOR 2</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(formData.inspeccionAccesorios.monitor2).map(
+              ([key, value]) => (
+                <div key={key} className="flex justify-between items-center">
+                  <Label htmlFor={`monitor2-${key}`}>
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                    :
+                  </Label>
+                  {typeof value === "boolean" ? (
+                    <YesNoOptions
+                      id={`monitor2-${key}`}
+                      value={value}
+                      onChange={(newValue) =>
+                        handleAccesorioChange("monitor2", key, newValue)
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={`monitor2-${key}`}
+                      value={value}
+                      onChange={(e) =>
+                        handleAccesorioChange("monitor2", key, e.target.value)
+                      }
+                      className="w-40"
+                    />
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </div>
       </section>
 
       <section className="mb-6">
@@ -627,8 +1062,9 @@ export default function FormularioMantenimientoLaparoscopia({
 
       <section className="flex justify-between">
         <div className="w-1/2 pr-2">
-          <Label htmlFor="firmaMantenimiento">
-            Firma y Sello Mantenimiento:
+          <Label htmlFor="firmaMantenimiento" className="flex items-center">
+            Firma y Sello Mantenimiento:{" "}
+            <span className="text-red-500 ml-1">*</span>
           </Label>
           <Input
             id="firmaMantenimiento"
@@ -639,8 +1075,9 @@ export default function FormularioMantenimientoLaparoscopia({
           />
         </div>
         <div className="w-1/2 pl-2">
-          <Label htmlFor="firmaOperador">
-            Firma y Sello Operador o encargado:
+          <Label htmlFor="firmaOperador" className="flex items-center">
+            Firma y Sello Operador o encargado:{" "}
+            <span className="text-red-500 ml-1">*</span>
           </Label>
           <Input
             id="firmaOperador"
@@ -653,9 +1090,19 @@ export default function FormularioMantenimientoLaparoscopia({
       </section>
 
       <div className="mt-6 text-center">
-        <Button type="button" onClick={handleSubmit}>
-          Enviar Formulario de Mantenimiento
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!isFormValid}
+          className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
+        >
+          Enviar e Imprimir Formulario de Mantenimiento
         </Button>
+      </div>
+
+      <div className="mt-4 text-sm text-gray-500 text-center">
+        Los campos marcados con <span className="text-red-500">*</span> son
+        obligatorios
       </div>
     </div>
   );

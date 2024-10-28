@@ -1,5 +1,5 @@
 export const statuses = [
-    { value: "Solución rápida", label: "Solución rápida" },
+    { value: "Completado", label: "Completado" },
     { value: "Repuesto", label: "Repuesto" },
     { value: "De baja", label: "De baja" },
     { value: "Enviado a ON", label: "Enviado a ON" },

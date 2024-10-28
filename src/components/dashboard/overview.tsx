@@ -1,28 +1,30 @@
 "use client";
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { useState, useEffect } from "react";
 
-const data = [
-  { name: "Jan", total: 1500 },
-  { name: "Feb", total: 4500 },
-  { name: "Mar", total: 1800 },
-  { name: "Apr", total: 1700 },
-  { name: "May", total: 2200 },
-  { name: "Jun", total: 3800 },
-  { name: "Jul", total: 3400 },
-  { name: "Aug", total: 3000 },
-  { name: "Sep", total: 5200 },
-  { name: "Oct", total: 5300 },
-  { name: "Nov", total: 5800 },
-  { name: "Dec", total: 4800 },
-];
+interface OverviewProps {
+  maintenanceHistory: any[];
+}
 
-export function Overview() {
+export function Overview({ maintenanceHistory }: OverviewProps) {
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [maxReports, setMaxReports] = useState(0);
+
+  useEffect(() => {
+    const monthlyData = processMaintenanceData(maintenanceHistory);
+    setChartData(monthlyData);
+    const max = Math.max(...monthlyData.map(item => item.total));
+    setMaxReports(max);
+  }, [maintenanceHistory]);
+
+  const yAxisTicks = generateYAxisTicks(maxReports);
+
   return (
     <div className="w-full p-4 bg-white rounded-lg">
-      <h2 className="text-lg font-semibold mb-4">Descripción general</h2>
+      <h2 className="text-lg font-semibold mb-4">Reportes Generados por Mes</h2>
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
+        <BarChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis 
             dataKey="name" 
@@ -34,17 +36,43 @@ export function Overview() {
             axisLine={false} 
             tickLine={false} 
             tick={{ fill: '#888888', fontSize: 12 }}
-            tickFormatter={(value) => `$${value}`}
-            domain={[0, 6000]}
-            ticks={[0, 1500, 3000, 4500, 6000]}
+            domain={[0, yAxisTicks[yAxisTicks.length - 1]]}
+            ticks={yAxisTicks}
           />
+          <Tooltip />
           <Bar 
             dataKey="total" 
             fill="#000000" 
-            radius={[0, 0, 0, 0]}
+            radius={[4, 4, 0, 0]}
           />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
+}
+
+function processMaintenanceData(data: any[]) {
+  const monthlyData = Array(12).fill(0).map((_, i) => ({
+    name: new Date(2023, i).toLocaleString('default', { month: 'short' }),
+    total: 0
+  }));
+
+  data.forEach(item => {
+    const startDate = new Date(item.fechaInicio);
+    const endDate = new Date(item.fechaFin);
+    const monthStart = startDate.getMonth();
+    const monthEnd = endDate.getMonth();
+
+    for (let month = monthStart; month <= monthEnd; month++) {
+      monthlyData[month].total += 1;
+    }
+  });
+
+  return monthlyData;
+}
+
+function generateYAxisTicks(maxValue: number) {
+  const ceiling = Math.ceil(maxValue / 10) * 10;
+  const step = Math.max(1, Math.floor(ceiling / 5));
+  return Array.from({ length: 6 }, (_, i) => i * step);
 }

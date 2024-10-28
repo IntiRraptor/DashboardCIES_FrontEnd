@@ -20,6 +20,8 @@ import { Checkbox } from "../ui/checkbox";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
 import logoCies from "../../../public/icon.png";
+import { format, addMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
 const formSchema = z.object({
   codigoActivo: z.string().min(1, "El código activo es requerido"),
@@ -57,6 +59,7 @@ const formSchema = z.object({
   observaciones: z.string(),
   firmaOperador: z.string(),
   firmaEncargado: z.string(),
+  ubicacion: z.string().min(1, "La ubicación es requerida"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -93,13 +96,18 @@ export function PreventivoForm({
   onSubmit,
   initialData,
   isEditMode = false,
+  region,
+  ubicacion,
 }: {
   equipment: EquipmentDetail[];
   onSubmit: (data: any) => void;
   initialData: any;
   isEditMode: boolean;
+  region: string;
+  ubicacion: string;
 }) {
   const [codigoActivo, setCodigoActivo] = useState("");
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -129,6 +137,8 @@ export function PreventivoForm({
           { modelo: "", serie: "", recubrimiento: false, rosca: false, resistencia: false, abolladuras: false },
         ],
       },
+      regional: region,
+      ubicacion: ubicacion,
     },
   });
 
@@ -167,7 +177,233 @@ export function PreventivoForm({
     }
   }, [form.watch("inspeccionAccesorios.cantidadCabezales")]);
 
+  // Función para validar el formulario
+  const validateForm = (data: FormValues) => {
+    const isValid = 
+      data.codigoActivo !== "" &&
+      data.marca !== "" &&
+      data.modelo !== "" &&
+      data.serie !== "" &&
+      data.sucursal !== "" &&
+      data.firmaOperador !== "" &&
+      data.firmaEncargado !== "";
+
+    setIsFormValid(isValid);
+    return isValid;
+  };
+
+  // Efecto para validar el formulario cuando cambien los valores
+  useEffect(() => {
+    validateForm(form.getValues());
+  }, [form.watch()]);
+
+  const handlePrint = (data: FormValues) => {
+    const printWindow = window.open("", "_blank");
+    const fechaVigencia = format(addMonths(new Date(), 1), "dd/MM/yyyy", { locale: es });
+    
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Protocolo de Mantenimiento - Criocauterio/Termoablación</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px;
+                line-height: 1.6;
+              }
+              .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: start;
+                margin-bottom: 20px;
+              }
+              .logo {
+                width: 100px;
+              }
+              .title {
+                text-align: center;
+                flex-grow: 1;
+                margin: 0 20px;
+              }
+              .date-info {
+                text-align: right;
+              }
+              .section {
+                margin-bottom: 20px;
+              }
+              .section-title {
+                font-weight: bold;
+                margin-bottom: 10px;
+                background-color: #f5f5f5;
+                padding: 5px;
+              }
+              .grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+              }
+              .item {
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 1px solid #eee;
+                padding: 5px 0;
+              }
+              .signatures {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 50px;
+              }
+              .signature-line {
+                width: 200px;
+                text-align: center;
+                border-top: 1px solid black;
+                padding-top: 5px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <img src="${logoCies.src}" alt="Logo CIES" class="logo" />
+              <div class="title">
+                <h1>COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
+                <h2>CRIOCAUTERIO/TERMOABLACIÓN</h2>
+                <p>Vigencia desde: ${fechaVigencia}</p>
+              </div>
+              <div class="date-info">
+                <p>Regional: ${data.regional}</p>
+                <p>Ubicación: ${data.ubicacion}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">DATOS DEL EQUIPO</div>
+              <div class="grid">
+                <div class="item">
+                  <span>Código de Activo:</span>
+                  <span>${data.codigoActivo}</span>
+                </div>
+                <div class="item">
+                  <span>Marca:</span>
+                  <span>${data.marca}</span>
+                </div>
+                <div class="item">
+                  <span>Modelo:</span>
+                  <span>${data.modelo}</span>
+                </div>
+                <div class="item">
+                  <span>Serie:</span>
+                  <span>${data.serie}</span>
+                </div>
+                <div class="item">
+                  <span>Tipo:</span>
+                  <span>${data.tipo}</span>
+                </div>
+                <div class="item">
+                  <span>Sucursal:</span>
+                  <span>${data.sucursal}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">INSPECCIÓN VISUAL</div>
+              <div class="grid">
+                ${data.inspeccionVisual.map(item => `
+                  <div class="item">
+                    <span>${item.descripcion}</span>
+                    <span>${item.realizado ? 'Sí' : 'No'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">INSPECCIÓN ELÉCTRICA</div>
+              <div class="grid">
+                ${data.inspeccionElectrica.map(item => `
+                  <div class="item">
+                    <span>${item.descripcion}</span>
+                    <span>${item.realizado ? 'Sí' : 'No'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">INSPECCIÓN FUNCIONAL</div>
+              <div class="grid">
+                ${data.inspeccionFuncional.map(item => `
+                  <div class="item">
+                    <span>${item.descripcion}</span>
+                    <span>${item.realizado ? 'Sí' : 'No'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">INSPECCIÓN DE ACCESORIOS</div>
+              ${data.inspeccionAccesorios.cabezales.map((cabezal, index) => `
+                <div class="grid">
+                  <h3>Cabezal ${index + 1}</h3>
+                  <div class="item">
+                    <span>Modelo:</span>
+                    <span>${cabezal.modelo}</span>
+                  </div>
+                  <div class="item">
+                    <span>Serie:</span>
+                    <span>${cabezal.serie}</span>
+                  </div>
+                  <div class="item">
+                    <span>Recubrimiento:</span>
+                    <span>${cabezal.recubrimiento ? 'Sí' : 'No'}</span>
+                  </div>
+                  <div class="item">
+                    <span>Rosca:</span>
+                    <span>${cabezal.rosca ? 'Sí' : 'No'}</span>
+                  </div>
+                  <div class="item">
+                    <span>Resistencia:</span>
+                    <span>${cabezal.resistencia ? 'Sí' : 'No'}</span>
+                  </div>
+                  <div class="item">
+                    <span>Abolladuras:</span>
+                    <span>${cabezal.abolladuras ? 'Sí' : 'No'}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="section">
+              <div class="section-title">OBSERVACIONES</div>
+              <p>${data.observaciones}</p>
+            </div>
+
+            <div class="signatures">
+              <div class="signature-line">
+                <p>${data.firmaOperador}</p>
+                <p>Firma del Operador</p>
+              </div>
+              <div class="signature-line">
+                <p>${data.firmaEncargado}</p>
+                <p>Firma del Encargado</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   const handleSubmit = form.handleSubmit((data) => {
+    if (!validateForm(data)) {
+      alert("Por favor, complete todos los campos requeridos antes de enviar el formulario.");
+      return;
+    }
+
     const formData = {
       ...data,
       equipo: codigoActivo,
@@ -178,9 +414,12 @@ export function PreventivoForm({
       inspeccionAccesorios: {
         ...data.inspeccionAccesorios,
         cabezales: data.inspeccionAccesorios.cabezales.slice(0, parseInt(data.inspeccionAccesorios.cantidadCabezales))
-      }
+      },
+      regional: region,
+      ubicacion: ubicacion,
     };
     onSubmit(formData);
+    handlePrint(data);
   });
 
   return (
@@ -213,7 +452,19 @@ export function PreventivoForm({
                 <FormItem>
                   <FormLabel>Regional:</FormLabel>
                   <FormControl>
-                    <Input {...field} className="w-40" />
+                    <Input {...field} readOnly />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="ubicacion"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ubicación:</FormLabel>
+                  <FormControl>
+                    <Input {...field} readOnly />
                   </FormControl>
                 </FormItem>
               )}
@@ -227,7 +478,9 @@ export function PreventivoForm({
             name="codigoActivo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Código de Activo:</FormLabel>
+                <FormLabel className="flex items-center">
+                  Código de Activo: <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input {...field} onChange={(e) => {
                     setCodigoActivo(e.target.value);
@@ -242,7 +495,9 @@ export function PreventivoForm({
             name="marca"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Marca:</FormLabel>
+                <FormLabel className="flex items-center">
+                  Marca: <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input {...field} readOnly />
                 </FormControl>
@@ -254,7 +509,9 @@ export function PreventivoForm({
             name="modelo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Modelo:</FormLabel>
+                <FormLabel className="flex items-center">
+                  Modelo: <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input {...field} readOnly />
                 </FormControl>
@@ -266,7 +523,9 @@ export function PreventivoForm({
             name="serie"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>N/S:</FormLabel>
+                <FormLabel className="flex items-center">
+                  Serie: <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input {...field} readOnly />
                 </FormControl>
@@ -296,6 +555,20 @@ export function PreventivoForm({
                     <option value="Criocauterio">Criocauterio</option>
                     <option value="Termoablación">Termoablación</option>
                   </select>
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="sucursal"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center">
+                  Sucursal: <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -476,7 +749,9 @@ export function PreventivoForm({
             name="firmaOperador"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Firma del Operador:</FormLabel>
+                <FormLabel className="flex items-center">
+                  Firma del Operador: <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -488,7 +763,9 @@ export function PreventivoForm({
             name="firmaEncargado"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Firma del Encargado del Equipo:</FormLabel>
+                <FormLabel className="flex items-center">
+                  Firma del Encargado del Equipo: <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -497,8 +774,20 @@ export function PreventivoForm({
           />
         </div>
 
-        <div className="mt-6 text-center">
-          <Button type="button" onClick={handleSubmit}>Enviar Formulario de Mantenimiento</Button>
+        <div className="mt-6 text-center space-x-4">
+          <Button 
+            type="button"
+            onClick={handleSubmit}
+            disabled={!isFormValid}
+            className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
+          >
+            Enviar e Imprimir Formulario de Mantenimiento
+          </Button>
+        </div>
+
+        {/* Mensaje de campos requeridos */}
+        <div className="mt-4 text-sm text-gray-500 text-center">
+          Los campos marcados con <span className="text-red-500">*</span> son obligatorios
         </div>
       </form>
     </Form>

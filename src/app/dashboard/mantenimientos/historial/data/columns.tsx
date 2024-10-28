@@ -248,6 +248,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo de Mantenimiento Aspirador Nebulizador":
@@ -257,6 +259,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo de Mantenimiento Ecografos":
@@ -266,6 +270,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo de Mantenimiento Video Colposcopio":
@@ -275,6 +281,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo Mantenimiento Torre Laparoscopia":
@@ -284,6 +292,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo de Mantenimiento Electrobisturi":
@@ -293,6 +303,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo de Mantenimiento Mesa QX y Lamp Cialitica":
@@ -302,6 +314,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo de Mantenimiento Incubadora ServoCuna Fototerapia":
@@ -311,6 +325,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo de Mantenimiento MaqAnes Vent CPAP.":
@@ -320,6 +336,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         case "Protocolo de Mantenimiento Monitores_Fetal_ECG":
@@ -329,6 +347,8 @@ const CellComponent = ({ row }) => {
               onSubmit={handleSubmitEdition}
               initialData={initialData}
               isEditMode={true}
+              region={""}
+              ubicacion={""}
             />
           );
         default:

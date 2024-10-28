@@ -9,6 +9,8 @@ import { Textarea } from "../ui/textarea";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
 import logoCies from "../../../public/icon.png";
+import { format, addMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
 const YesNoOptions = ({
   id,
@@ -62,11 +64,10 @@ const inspectionItems = {
   ],
   electrical: [
     "Interfaz de enchufe correcto.",
-    "Cable de Poder en buen estado.",
     "Botones de control en buen estado.",
+    "Cable de Poder en buen estado.",
     "Fusibles en buen estado.",
     "Tipos de Fusibles",
-    "Cable de Poder en buen estado.",
   ],
   functional: [
     "Encendido e inicialización correcto.",
@@ -91,22 +92,25 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
   onSubmit,
   initialData,
   isEditMode = false,
+  region,
+  ubicacion,
 }: {
   equipment: EquipmentDetail[];
   onSubmit: (data: any) => void;
   initialData: any;
   isEditMode: boolean;
+  region: string;
+  ubicacion: string;
 }) {
   const [tipoEquipo, setTipoEquipo] = useState("Aspiradora");
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
+  const [location, setLocation] = useState("");
   const [numeroSerie, setNumeroSerie] = useState("");
   const [codigoActivo, setCodigoActivo] = useState("");
-  const [ubicacion, setUbicacion] = useState("");
   const [fecha, setFecha] = useState("");
   const [garantia, setGarantia] = useState("no");
   const [sucursal, setSucursal] = useState("");
-  const [oficinaRegional, setOficinaRegional] = useState("");
   const [visualInspection, setVisualInspection] = useState([]);
   const [electricalInspection, setElectricalInspection] = useState([]);
   const [functionalInspection, setFunctionalInspection] = useState([]);
@@ -114,6 +118,43 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
   const [observaciones, setObservaciones] = useState("");
   const [firmaOperador, setFirmaOperador] = useState("");
   const [firmaEncargado, setFirmaEncargado] = useState("");
+
+  // Nuevo estado para controlar la validación del formulario
+  const [isFormValid, setIsFormValid] = useState(true);
+
+  // Función para validar el formulario
+  const validateForm = () => {
+    const isValid =
+      (location !== "" ? location : ubicacion) !== "" &&
+      fecha !== "" &&
+      codigoActivo !== "" &&
+      marca !== "" &&
+      modelo !== "" &&
+      numeroSerie !== "" &&
+      sucursal !== "" &&
+      region !== "" &&
+      firmaOperador !== "" &&
+      firmaEncargado !== "";
+
+    setIsFormValid(isValid);
+    return isValid;
+  };
+
+  useEffect(() => {
+    validateForm();
+    console.log("isFormValid: ", isFormValid);
+  }, [
+    location,
+    fecha,
+    codigoActivo,
+    marca,
+    modelo,
+    numeroSerie,
+    sucursal,
+    region,
+    firmaOperador,
+    firmaEncargado,
+  ]);
 
   useEffect(() => {
     if (isEditMode) {
@@ -125,11 +166,10 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       setModelo(foundEquipment?.descaf || "");
       setNumeroSerie(foundEquipment?.aux1 || "");
       setTipoEquipo(details.tipoEquipo || "Aspiradora");
-      setUbicacion(details.ubicacion || "");
+      setLocation(details.ubicacion || "");
       setFecha(details.fecha || "");
       setGarantia(details.garantia || "no");
       setSucursal(details.sucursal || "");
-      setOficinaRegional(details.oficinaRegional || "");
       setVisualInspection(details.visualInspection || []);
       setElectricalInspection(details.electricalInspection || []);
       setFunctionalInspection(details.functionalInspection || []);
@@ -155,7 +195,15 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
     }
   }, [equipment, codigoActivo, isEditMode]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      // Mostrar mensaje de error o feedback al usuario
+      alert(
+        "Por favor, complete todos los campos requeridos antes de enviar el formulario."
+      );
+      return;
+    }
+
     const getInspectionData = (items: string[]) => {
       return items.map((item) => {
         const input = document.querySelector(
@@ -174,7 +222,7 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       garantia,
       tipo: "Preventivo",
       sucursal,
-      oficinaRegional,
+      regional: region,
       equipo: codigoActivo,
       costo: 0,
       estado: "Programado",
@@ -187,7 +235,246 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       firmaOperador,
       firmaEncargado,
     };
-    onSubmit(formData);
+    await onSubmit(formData);
+    handlePrint();
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    const fechaVigencia = format(addMonths(new Date(), 1), "dd/MM/yyyy", {
+      locale: es,
+    });
+
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Protocolo de Mantenimiento - ${tipoEquipo}</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px;
+                line-height: 1.6;
+              }
+              .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: start;
+                margin-bottom: 20px;
+              }
+              .logo {
+                width: 100px;
+              }
+              .title {
+                text-align: center;
+                flex-grow: 1;
+                margin: 0 20px;
+              }
+              .date-info {
+                text-align: right;
+              }
+              .section {
+                margin-bottom: 20px;
+              }
+              .section-title {
+                font-weight: bold;
+                margin-bottom: 10px;
+                background-color: #f5f5f5;
+                padding: 5px;
+              }
+              .grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+              }
+              .item {
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 1px solid #eee;
+                padding: 5px 0;
+              }
+              .signatures {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 50px;
+              }
+              .signature-line {
+                width: 200px;
+                text-align: center;
+                border-top: 1px solid black;
+                padding-top: 5px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <img src="${logoCies.src}" alt="Logo CIES" class="logo" />
+              <div class="title">
+                <h1>COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
+                <h2>${tipoEquipo.toUpperCase()}</h2>
+                <p>Vigencia desde: ${fechaVigencia}</p>
+              </div>
+              <div class="date-info">
+                <p>Lugar: ${location}</p>
+                <p>Fecha: ${fecha}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">DATOS DEL EQUIPO</div>
+              <div class="grid">
+                <div class="item">
+                  <span>Código de Activo:</span>
+                  <span>${codigoActivo}</span>
+                </div>
+                <div class="item">
+                  <span>Marca:</span>
+                  <span>${marca}</span>
+                </div>
+                <div class="item">
+                  <span>Modelo:</span>
+                  <span>${modelo}</span>
+                </div>
+                <div class="item">
+                  <span>N/S:</span>
+                  <span>${numeroSerie}</span>
+                </div>
+                <div class="item">
+                  <span>Garantía:</span>
+                  <span>${garantia === "si" ? "Sí" : "No"}</span>
+                </div>
+                <div class="item">
+                  <span>Tipo:</span>
+                  <span>${tipoEquipo}</span>
+                </div>
+                <div class="item">
+                  <span>Sucursal:</span>
+                  <span>${sucursal}</span>
+                </div>
+                <div class="item">
+                  <span>Regional:</span>
+                  <span>${region}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">1. INSPECCIÓN VISUAL</div>
+              <div class="grid">
+                ${inspectionItems.visual
+                  .map(
+                    (item) => `
+                  <div class="item">
+                    <span>${item}</span>
+                    <span>${
+                      (
+                        document.querySelector(
+                          `input[name="${item}"]:checked`
+                        ) as HTMLInputElement
+                      )?.value === "si"
+                        ? "Sí"
+                        : "No"
+                    }</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">2. INSPECCIÓN ELÉCTRICA</div>
+              <div class="grid">
+                ${inspectionItems.electrical
+                  .map(
+                    (item) => `
+                  <div class="item">
+                    <span>${item}</span>
+                    <span>${
+                      (
+                        document.querySelector(
+                          `input[name="${item}"]:checked`
+                        ) as HTMLInputElement
+                      )?.value === "si"
+                        ? "Sí"
+                        : "No"
+                    }</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">3. INSPECCIÓN FUNCIONAL</div>
+              <div class="grid">
+                ${inspectionItems.functional
+                  .map(
+                    (item) => `
+                  <div class="item">
+                    <span>${item}</span>
+                    <span>${
+                      (
+                        document.querySelector(
+                          `input[name="${item}"]:checked`
+                        ) as HTMLInputElement
+                      )?.value === "si"
+                        ? "Sí"
+                        : "No"
+                    }</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">4. REEMPLAZO DE EMPAQUES, MEMBRANAS Y COJINETE</div>
+              <div class="grid">
+                ${inspectionItems.replacement
+                  .map(
+                    (item) => `
+                  <div class="item">
+                    <span>${item}</span>
+                    <span>${
+                      (
+                        document.querySelector(
+                          `input[name="${item}"]:checked`
+                        ) as HTMLInputElement
+                      )?.value === "si"
+                        ? "Sí"
+                        : "No"
+                    }</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">OBSERVACIONES</div>
+              <p>${observaciones}</p>
+            </div>
+
+            <div class="signatures">
+              <div class="signature-line">
+                <p>${firmaOperador}</p>
+                <p>Firma del Operador</p>
+              </div>
+              <div class="signature-line">
+                <p>${firmaEncargado}</p>
+                <p>Firma del Encargado del Equipo</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   return (
@@ -233,22 +520,28 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
         </div>
         <div className="text-right">
           <div className="mb-2">
-            <Label htmlFor="ubicacion">Ubicación:</Label>
+            <Label htmlFor="ubicacion" className="flex items-center">
+              Ubicación: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="ubicacion"
               className="w-40"
-              value={ubicacion}
-              onChange={(e) => setUbicacion(e.target.value)}
+              value={location !== "" ? location : ubicacion}
+              onChange={(e) => setLocation(e.target.value)}
+              required
             />
           </div>
           <div>
-            <Label htmlFor="fecha">Fecha:</Label>
+            <Label htmlFor="fecha" className="flex items-center">
+              Fecha: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="fecha"
               type="date"
               className="w-40"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
+              required
             />
           </div>
         </div>
@@ -258,11 +551,14 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
         <h2 className="text-lg font-semibold mb-2">Datos del Equipo</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="codigoActivo">Código de Activo:</Label>
+            <Label htmlFor="codigoActivo" className="flex items-center">
+              Código de Activo: <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="codigoActivo"
               value={codigoActivo}
               onChange={(e) => setCodigoActivo(e.target.value)}
+              required
             />
           </div>
           <div>
@@ -294,12 +590,8 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
             />
           </div>
           <div>
-            <Label htmlFor="oficinaRegional">Oficina Regional:</Label>
-            <Input
-              id="oficinaRegional"
-              value={oficinaRegional}
-              onChange={(e) => setOficinaRegional(e.target.value)}
-            />
+            <Label htmlFor="regional">Regional:</Label>
+            <Input id="regional" value={region} readOnly />
           </div>
         </div>
       </section>
@@ -369,7 +661,8 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
 
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">
-          4. Remplazo de Empaques, Membranas y Cojinete (Solo si fuese necesario)
+          4. Remplazo de Empaques, Membranas y Cojinete (Solo si fuese
+          necesario)
         </h2>
         <div className="space-y-2">
           {inspectionItems.replacement.map((item, index) => (
@@ -393,7 +686,7 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">Observaciones</h2>
         <Textarea
-          placeholder="Ingrese cualquier observación adicional aquí"
+          placeholder="Ingrese cualquier observación adicional aquí (opcional)"
           className="w-full h-24"
           value={observaciones}
           onChange={(e) => setObservaciones(e.target.value)}
@@ -402,31 +695,47 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
 
       <section className="flex justify-between">
         <div className="w-1/2 pr-2">
-          <Label htmlFor="firmaOperador">Firma del Operador:</Label>
+          <Label htmlFor="firmaOperador" className="flex items-center">
+            Firma del Operador: <span className="text-red-500 ml-1">*</span>
+          </Label>
           <Input
             id="firmaOperador"
             className="mt-1"
             value={firmaOperador}
             onChange={(e) => setFirmaOperador(e.target.value)}
+            required
           />
         </div>
         <div className="w-1/2 pl-2">
-          <Label htmlFor="firmaEncargado">
-            Firma del Encargado del Equipo:
+          <Label htmlFor="firmaEncargado" className="flex items-center">
+            Firma del Encargado del Equipo:{" "}
+            <span className="text-red-500 ml-1">*</span>
           </Label>
           <Input
             id="firmaEncargado"
             className="mt-1"
             value={firmaEncargado}
             onChange={(e) => setFirmaEncargado(e.target.value)}
+            required
           />
         </div>
       </section>
 
-      <div className="mt-6 text-center">
-        <Button type="button" onClick={handleSubmit}>
-          Enviar Formulario de Mantenimiento
+      <div className="mt-6 text-center space-x-4">
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!isFormValid}
+          className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
+        >
+          Enviar e Imprimir Formulario de Mantenimiento
         </Button>
+      </div>
+
+      {/* Mensaje opcional para mostrar campos requeridos */}
+      <div className="mt-4 text-sm text-gray-500 text-center">
+        Los campos marcados con <span className="text-red-500">*</span> son
+        obligatorios
       </div>
     </div>
   );

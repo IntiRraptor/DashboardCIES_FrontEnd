@@ -9,8 +9,18 @@ import { Textarea } from "../ui/textarea";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
 import logoCies from "../../../public/icon.png";
+import { format, addMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
-const YesNoOptions = ({ id, value, onChange }: { id: string; value: boolean; onChange: (value: boolean) => void }) => (
+const YesNoOptions = ({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}) => (
   <div className="flex space-x-4">
     <div className="flex items-center space-x-2">
       <input
@@ -21,7 +31,9 @@ const YesNoOptions = ({ id, value, onChange }: { id: string; value: boolean; onC
         onChange={() => onChange(true)}
         className="radio-input"
       />
-      <label htmlFor={`${id}-si`} className="radio-label">Sí</label>
+      <label htmlFor={`${id}-si`} className="radio-label">
+        Sí
+      </label>
     </div>
     <div className="flex items-center space-x-2">
       <input
@@ -32,7 +44,9 @@ const YesNoOptions = ({ id, value, onChange }: { id: string; value: boolean; onC
         onChange={() => onChange(false)}
         className="radio-input"
       />
-      <label htmlFor={`${id}-no`} className="radio-label">No</label>
+      <label htmlFor={`${id}-no`} className="radio-label">
+        No
+      </label>
     </div>
   </div>
 );
@@ -42,130 +56,94 @@ export default function FormularioMantenimientoVentiladorCPAP({
   onSubmit,
   initialData,
   isEditMode = false,
+  region,
+  ubicacion,
 }: {
   equipment: EquipmentDetail[];
   onSubmit: (data: any) => void;
   initialData: any;
   isEditMode: boolean;
+  region: string;
+  ubicacion: string;
 }) {
   const [formData, setFormData] = useState({
     codigoActivo: "",
     marca: "",
     modelo: "",
     ns: "",
-    anoEntrega: "",
-    tipo: "Anestesia",
     garantia: false,
+    tipo: "Ventilador",
     sucursal: "",
-    regional: "",
-    lugar: "",
+    regional: region,
+    lugar: ubicacion,
     fecha: "",
     inspeccionVisual: {
       dañosFisicos: false,
-      dañosCarro: false,
       etiquetaRemovida: false,
       conductoresExpuestos: false,
       puertosConectoresDanados: false,
-      pulmonPruebaBuenEstado: false,
-      valvulasManguerasBuenEstado: false,
       limpiezaDeficiente: false,
-      humidificadorBuenEstado: false,
-      presionOxigenoAireCorrecta: false,
-      sensorFlujoBuenEstado: false,
-      usoFiltrosAntibacteriales: false,
-      sensorOxigenoBuenEstado: false,
-      manometrosBuenEstado: false,
+      acumulacionPolvo: false,
+      pantallaBuenEstado: false,
+      botonesBuenEstado: false,
     },
     inspeccionElectrica: {
-      equipoConectadoUPS: false,
-      voltajeLinea: "",
-      voltajeUPS: "",
-      bateriasEquipoBuenEstado: false,
-      cablePoder: false,
-      usaTransformador: false,
-      interfazEnchufe: false,
-      accesoriosBuenEstado: false,
-      filtrosBuenEstado: false,
-      cantidadBaterias: "",
-      tipoBateria: "",
-      fechaReemplazoBateria: "",
+      equipoCuentaBateria: false,
+      voltajeBateria: "",
+      modeloBateria: "",
+      fusiblesBuenEstado: false,
+      cablePoderBuenEstado: false,
+      continuidadCablePoder: false,
+      interfazEnchufesCorrecto: false,
+      iluminacionLEDAmbiente: false,
     },
     inspeccionFuncional: {
       encendidoInicializacion: false,
-      ventilacionPresionCorrecta: false,
-      autotestFallasFugas: false,
-      ventilacionVolumenCorrecta: false,
-      controlesFuncionales: false,
-      ventilacionManualCorrecta: false,
-      flujometrosFuncionales: false,
-      ventilacionCPAPCorrecta: false,
-      horasUso: "",
-      mezclaAireOxigeno: false,
-      sonidoAlarmas: false,
-      dosisVaporizadores: false,
-      suministroCilindroO2: false,
-      pawPeepFuncionales: false,
-      suministroCilindroAire: false,
-      limitadorPresion: false,
-      suministroElectrico: false,
-      alarmaBajaPresion: false,
+      reconocimientoAccesorios: false,
+      alarmasSonido: false,
+      almacenamientoPacientes: false,
+      controlTemperatura: false,
+      controlHumedad: false,
+      controlIluminacion: false,
+      riseTimeTemp: "",
+      nivelLumenes: "",
     },
     inspeccionAccesorios: {
-      cantidadVaporizadores: "1",
-      humidificadorActivo: false,
-      vaporizadores: [
+      cantidadAccesorios: "1",
+      accesorios: [
         {
           modelo: "",
           ns: "",
-          perillaAjuste: false,
-          indicadorNivel: false,
-          empaquesConexion: false,
-          puertoCarga: false,
-          perillaSujecion: false,
-          puertoDescarga: false,
+          pruebaFuncionamiento: false,
+          interfazSinDaños: false,
+          cableConexionSinDaños: false,
+          conectorSinDaños: false,
+          limpiezaAdecuada: false,
+          sensorSinDaños: false,
         },
       ],
-      humidificador: {
-        modelo: "",
-        ns: "",
-        pruebaCalentamiento: false,
-        botonesBuenEstado: false,
-        sensorTemperatura: false,
-        camaraHumBuenEstado: false,
-        conexionElectrica: false,
-      },
-      compresor: {
-        modelo: "",
-        ns: "",
-        pruebaFugas: false,
-        botonesBuenEstado: false,
-        conectoresSalida: false,
-        filtrosAireLimpios: false,
-        cableConexion: false,
-      },
     },
-    calibracionReemplazo: {
-      calibracionFlujos: false,
-      desempolvamientoInterno: false,
-      calibracionPresiones: false,
+    limpieza: {
+      memoriaLimpieza: false,
+      contactoresElectricos: false,
+      panelesControlTeclado: false,
+      desenpolvarChasis: false,
+      desenpolvamientoInterno: false,
       revisionModulosTarjetas: false,
-      calibracionVolumenes: false,
-      revisionInterfaces: false,
-      ajustesInterfaz: false,
-      revisionManometros: false,
-      calibracionValvulas: false,
-      revisionFlujometros: false,
-      limpiezaContactores: false,
+      revisionRuedasFrenos: false,
+      contenedorAgua: false,
     },
     observaciones: "",
     firmaMantenimiento: "",
     firmaOperador: "",
   });
 
+  const [isFormValid, setIsFormValid] = useState(false);
+
   useEffect(() => {
     if (isEditMode && initialData) {
       const details = JSON.parse(initialData.details);
-      setFormData(prevState => ({
+      setFormData((prevState) => ({
         ...prevState,
         ...details,
         codigoActivo: details.equipo || "",
@@ -175,9 +153,12 @@ export default function FormularioMantenimientoVentiladorCPAP({
 
   useEffect(() => {
     if (!isEditMode) {
-      const foundEquipment = findEquipmentByCode(equipment, formData.codigoActivo);
+      const foundEquipment = findEquipmentByCode(
+        equipment,
+        formData.codigoActivo
+      );
       if (foundEquipment) {
-        setFormData(prevState => ({
+        setFormData((prevState) => ({
           ...prevState,
           marca: foundEquipment.nombreaf,
           modelo: foundEquipment.descaf,
@@ -187,41 +168,37 @@ export default function FormularioMantenimientoVentiladorCPAP({
     }
   }, [equipment, formData.codigoActivo, isEditMode]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  useEffect(() => {
+    const isValid = Boolean(
+      formData.codigoActivo &&
+        formData.marca &&
+        formData.modelo &&
+        formData.ns &&
+        formData.sucursal &&
+        formData.regional &&
+        formData.lugar &&
+        formData.firmaMantenimiento &&
+        formData.firmaOperador
+    );
+    setIsFormValid(isValid);
+  }, [formData]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    if (name === "inspeccionAccesorios.cantidadVaporizadores") {
-      const numVaporizadores = Math.max(1, Math.min(9, parseInt(value) || 1));
-      const newVaporizadores = [...formData.inspeccionAccesorios.vaporizadores];
-      while (newVaporizadores.length < numVaporizadores) {
-        newVaporizadores.push({
-          modelo: "",
-          ns: "",
-          perillaAjuste: false,
-          indicadorNivel: false,
-          empaquesConexion: false,
-          puertoCarga: false,
-          perillaSujecion: false,
-          puertoDescarga: false,
-        });
-      }
-      setFormData(prevState => ({
-        ...prevState,
-        inspeccionAccesorios: {
-          ...prevState.inspeccionAccesorios,
-          cantidadVaporizadores: numVaporizadores.toString(),
-          vaporizadores: newVaporizadores.slice(0, numVaporizadores),
-        },
-      }));
-    } else {
-      setFormData(prevState => ({
-        ...prevState,
-        [name]: value,
-      }));
-    }
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
 
-  const handleCheckboxChange = (section: string, field: string, value: boolean) => {
-    setFormData(prevState => ({
+  const handleCheckboxChange = (
+    section: string,
+    field: string,
+    value: boolean
+  ) => {
+    setFormData((prevState) => ({
       ...prevState,
       [section]: {
         ...prevState[section],
@@ -230,13 +207,13 @@ export default function FormularioMantenimientoVentiladorCPAP({
     }));
   };
 
-  const handleVaporizadorChange = (index: number, field: string, value: any) => {
-    setFormData(prevState => ({
+  const handleAccesorioChange = (index: number, field: string, value: any) => {
+    setFormData((prevState) => ({
       ...prevState,
       inspeccionAccesorios: {
         ...prevState.inspeccionAccesorios,
-        vaporizadores: prevState.inspeccionAccesorios.vaporizadores.map((v, i) => 
-          i === index ? { ...v, [field]: value } : v
+        accesorios: prevState.inspeccionAccesorios.accesorios.map((acc, i) =>
+          i === index ? { ...acc, [field]: value } : acc
         ),
       },
     }));
@@ -249,9 +226,142 @@ export default function FormularioMantenimientoVentiladorCPAP({
       equipo: formData.codigoActivo,
       costo: 0,
       estado: "Programado",
-      typeForm: "Protocolo de Mantenimiento Anestesia Ventilador CPAP",
+      typeForm: "Protocolo de Mantenimiento Ventilador CPAP",
+      regional: region,
+      ubicacion: ubicacion,
     };
     onSubmit(submittedData);
+    handlePrint();
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Formulario de Mantenimiento</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              h1, h2 { text-align: center; }
+              .section { margin-bottom: 20px; }
+              .section-title { font-weight: bold; margin-bottom: 10px; }
+              .item { display: flex; justify-content: space-between; }
+              .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
+              .signature-line { text-align: center; }
+            </style>
+          </head>
+          <body>
+            <img src="${logoCies}" alt="Logo CIES" style="width: 100px; display: block; margin: 0 auto;" />
+            <h1>COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
+            <h2>VENTILADOR CPAP</h2>
+            <div class="section">
+              <div class="section-title">DATOS DEL EQUIPO</div>
+              <div class="item"><span>Código de Activo:</span><span>${formData.codigoActivo}</span></div>
+              <div class="item"><span>Marca:</span><span>${formData.marca}</span></div>
+              <div class="item"><span>Modelo:</span><span>${formData.modelo}</span></div>
+              <div class="item"><span>N/S:</span><span>${formData.ns}</span></div>
+              <div class="item"><span>Garantía:</span><span>${formData.garantia ? "Sí" : "No"}</span></div>
+              <div class="item"><span>Tipo:</span><span>${formData.tipo}</span></div>
+              <div class="item"><span>Sucursal:</span><span>${formData.sucursal}</span></div>
+              <div class="item"><span>Regional:</span><span>${formData.regional}</span></div>
+              <div class="item"><span>Ubicación:</span><span>${formData.lugar}</span></div>
+              <div class="item"><span>Fecha:</span><span>${formData.fecha}</span></div>
+            </div>
+            <div class="section">
+              <div class="section-title">1. INSPECCIÓN VISUAL</div>
+              ${Object.entries(formData.inspeccionVisual)
+                .map(
+                  ([key, value]) => `
+                <div class="item">
+                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                  <span>${value ? "Sí" : "No"}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">2. INSPECCIÓN ELÉCTRICA</div>
+              ${Object.entries(formData.inspeccionElectrica)
+                .map(
+                  ([key, value]) => `
+                <div class="item">
+                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                  <span>${value ? "Sí" : "No"}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">3. INSPECCIÓN FUNCIONAL</div>
+              ${Object.entries(formData.inspeccionFuncional)
+                .map(
+                  ([key, value]) => `
+                <div class="item">
+                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                  <span>${value ? "Sí" : "No"}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">4. INSPECCIÓN ACCESORIOS</div>
+              ${formData.inspeccionAccesorios.accesorios
+                .map(
+                  (accesorio, index) => `
+                <div class="item">
+                  <span>ACCESORIO ${index + 1}</span>
+                </div>
+                ${Object.entries(accesorio)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">5. LIMPIEZA</div>
+              ${Object.entries(formData.limpieza)
+                .map(
+                  ([key, value]) => `
+                <div class="item">
+                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                  <span>${value ? "Sí" : "No"}</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="section">
+              <div class="section-title">OBSERVACIONES</div>
+              <p>${formData.observaciones}</p>
+            </div>
+            <div class="signatures">
+              <div class="signature-line">
+                <p>${formData.firmaMantenimiento}</p>
+                <p>Firma y Sello Mantenimiento</p>
+              </div>
+              <div class="signature-line">
+                <p>${formData.firmaOperador}</p>
+                <p>Firma y Sello Operador o encargado</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   return (
@@ -259,8 +369,10 @@ export default function FormularioMantenimientoVentiladorCPAP({
       <div className="flex justify-between items-start mb-6">
         <Image src={logoCies} alt="Logo CIES" width={100} height={50} />
         <div className="text-center flex-grow">
-          <h1 className="text-2xl font-bold">COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
-          <h2 className="text-xl font-semibold">ANESTESIA VENTILADOR CPAP</h2>
+          <h1 className="text-2xl font-bold">
+            COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO
+          </h1>
+          <h2 className="text-xl font-semibold">VENTILADOR CPAP</h2>
         </div>
         <div className="text-right">
           <div className="mb-2">
@@ -312,34 +424,11 @@ export default function FormularioMantenimientoVentiladorCPAP({
             <Input id="ns" name="ns" value={formData.ns} readOnly />
           </div>
           <div>
-            <Label htmlFor="anoEntrega">Año de entrega/fabricación:</Label>
-            <Input
-              id="anoEntrega"
-              name="anoEntrega"
-              value={formData.anoEntrega}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div>
-            <Label htmlFor="tipo">Tipo:</Label>
-            <select
-              id="tipo"
-              name="tipo"
-              value={formData.tipo}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-            >
-              <option value="Anestesia">Anestesia</option>
-              <option value="Ventilador">Ventilador</option>
-              <option value="CPAP">CPAP</option>
-            </select>
-          </div>
-          <div>
             <Label>Garantía:</Label>
             <YesNoOptions
               id="garantia"
               value={formData.garantia}
-              onChange={(value) => handleCheckboxChange('garantia', '', value)}
+              onChange={(value) => handleCheckboxChange("garantia", "", value)}
             />
           </div>
           <div>
@@ -353,12 +442,11 @@ export default function FormularioMantenimientoVentiladorCPAP({
           </div>
           <div>
             <Label htmlFor="regional">Regional:</Label>
-            <Input
-              id="regional"
-              name="regional"
-              value={formData.regional}
-              onChange={handleInputChange}
-            />
+            <Input id="regional" name="regional" value={region} readOnly />
+          </div>
+          <div>
+            <Label htmlFor="ubicacion">Ubicación:</Label>
+            <Input id="ubicacion" name="ubicacion" value={ubicacion} readOnly />
           </div>
         </div>
       </section>
@@ -368,11 +456,18 @@ export default function FormularioMantenimientoVentiladorCPAP({
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(formData.inspeccionVisual).map(([key, value]) => (
             <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={key}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
               <YesNoOptions
                 id={key}
                 value={value}
-                onChange={(newValue) => handleCheckboxChange('inspeccionVisual', key, newValue)}
+                onChange={(newValue) =>
+                  handleCheckboxChange("inspeccionVisual", key, newValue)
+                }
               />
             </div>
           ))}
@@ -384,19 +479,32 @@ export default function FormularioMantenimientoVentiladorCPAP({
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(formData.inspeccionElectrica).map(([key, value]) => (
             <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={key}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
-              {typeof value === 'boolean' ? (
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
+              {typeof value === "boolean" ? (
                 <YesNoOptions
                   id={key}
                   value={value}
-                  onChange={(newValue) => handleCheckboxChange('inspeccionElectrica', key, newValue)}
+                  onChange={(newValue) =>
+                    handleCheckboxChange("inspeccionElectrica", key, newValue)
+                  }
                 />
               ) : (
                 <Input
                   id={key}
                   name={`inspeccionElectrica.${key}`}
                   value={value}
-                  onChange={(e) => handleCheckboxChange('inspeccionElectrica', key, e.target.checked)}
+                  onChange={(e) =>
+                    handleCheckboxChange(
+                      "inspeccionElectrica",
+                      key,
+                      e.target.checked
+                    )
+                  }
                   className="w-40"
                 />
               )}
@@ -410,19 +518,32 @@ export default function FormularioMantenimientoVentiladorCPAP({
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(formData.inspeccionFuncional).map(([key, value]) => (
             <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={key}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
-              {typeof value === 'boolean' ? (
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
+              {typeof value === "boolean" ? (
                 <YesNoOptions
                   id={key}
                   value={value}
-                  onChange={(newValue) => handleCheckboxChange('inspeccionFuncional', key, newValue)}
+                  onChange={(newValue) =>
+                    handleCheckboxChange("inspeccionFuncional", key, newValue)
+                  }
                 />
               ) : (
                 <Input
                   id={key}
                   name={`inspeccionFuncional.${key}`}
                   value={value}
-                  onChange={(e) => handleCheckboxChange('inspeccionFuncional', key, e.target.checked)}
+                  onChange={(e) =>
+                    handleCheckboxChange(
+                      "inspeccionFuncional",
+                      key,
+                      e.target.checked
+                    )
+                  }
                   className="w-40"
                 />
               )}
@@ -435,154 +556,96 @@ export default function FormularioMantenimientoVentiladorCPAP({
         <h2 className="text-lg font-semibold mb-2">4. INSPECCIÓN ACCESORIOS</h2>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <Label htmlFor="cantidadVaporizadores">Cantidad de vaporizadores:</Label>
+            <Label htmlFor="cantidadAccesorios">Cantidad de accesorios:</Label>
             <Input
-              id="cantidadVaporizadores"
-              name="inspeccionAccesorios.cantidadVaporizadores"
+              id="cantidadAccesorios"
+              name="inspeccionAccesorios.cantidadAccesorios"
               type="number"
               min="1"
-              max="9"
-              value={formData.inspeccionAccesorios.cantidadVaporizadores}
+              max="6"
+              value={formData.inspeccionAccesorios.cantidadAccesorios}
               onChange={handleInputChange}
             />
           </div>
-          <div>
-            <Label>Humidificador activo:</Label>
-            <YesNoOptions
-              id="humidificadorActivo"
-              value={formData.inspeccionAccesorios.humidificadorActivo}
-              onChange={(value) => handleCheckboxChange('inspeccionAccesorios', 'humidificadorActivo', value)}
-            />
-          </div>
         </div>
-        {formData.inspeccionAccesorios.vaporizadores.slice(0, parseInt(formData.inspeccionAccesorios.cantidadVaporizadores)).map((vaporizador, index) => (
-          <div key={index} className="border p-4 mb-4 rounded">
-            <h3 className="font-semibold mb-2">VAPORIZADOR {index + 1}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`vaporizador-${index}-modelo`}>Modelo:</Label>
-                <Input
-                  id={`vaporizador-${index}-modelo`}
-                  value={vaporizador.modelo}
-                  onChange={(e) => handleVaporizadorChange(index, 'modelo', e.target.value)}
-                />
+        {formData.inspeccionAccesorios.accesorios
+          .slice(0, parseInt(formData.inspeccionAccesorios.cantidadAccesorios))
+          .map((accesorio, index) => (
+            <div key={index} className="border p-4 mb-4 rounded">
+              <h3 className="font-semibold mb-2">ACCESORIO {index + 1}</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor={`accesorio-${index}-modelo`}>Modelo:</Label>
+                  <Input
+                    id={`accesorio-${index}-modelo`}
+                    value={accesorio.modelo}
+                    onChange={(e) =>
+                      handleAccesorioChange(index, "modelo", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`accesorio-${index}-ns`}>N/S:</Label>
+                  <Input
+                    id={`accesorio-${index}-ns`}
+                    value={accesorio.ns}
+                    onChange={(e) =>
+                      handleAccesorioChange(index, "ns", e.target.value)
+                    }
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor={`vaporizador-${index}-ns`}>N/S:</Label>
-                <Input
-                  id={`vaporizador-${index}-ns`}
-                  value={vaporizador.ns}
-                  onChange={(e) => handleVaporizadorChange(index, 'ns', e.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                {Object.entries(accesorio).map(([key, value]) => {
+                  if (typeof value === "boolean") {
+                    return (
+                      <div
+                        key={key}
+                        className="flex justify-between items-center"
+                      >
+                        <Label htmlFor={`accesorio-${index}-${key}`}>
+                          {key
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/^./, (str) => str.toUpperCase())}
+                          :
+                        </Label>
+                        <YesNoOptions
+                          id={`accesorio-${index}-${key}`}
+                          value={value}
+                          onChange={(newValue) =>
+                            handleAccesorioChange(index, key, newValue)
+                          }
+                        />
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {Object.entries(vaporizador).map(([key, value]) => {
-                if (typeof value === 'boolean') {
-                  return (
-                    <div key={key} className="flex justify-between items-center">
-                      <Label htmlFor={`vaporizador-${index}-${key}`}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
-                      <YesNoOptions
-                        id={`vaporizador-${index}-${key}`}
-                        value={value}
-                        onChange={(newValue) => handleVaporizadorChange(index, key, newValue)}
-                      />
-                    </div>
-                  );
-                }
-                return null;
-              })}
-            </div>
-          </div>
-        ))}
-        <div className="border p-4 mb-4 rounded">
-          <h3 className="font-semibold mb-2">HUMIDIFICADOR</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="humidificador-modelo">Modelo:</Label>
-              <Input
-                id="humidificador-modelo"
-                value={formData.inspeccionAccesorios.humidificador.modelo}
-                onChange={(e) => handleCheckboxChange('inspeccionAccesorios.humidificador', 'modelo', e.target.checked)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="humidificador-ns">N/S:</Label>
-              <Input
-                id="humidificador-ns"
-                value={formData.inspeccionAccesorios.humidificador.ns}
-                onChange={(e) => handleCheckboxChange('inspeccionAccesorios.humidificador', 'ns', e.target.checked)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-2">
-            {Object.entries(formData.inspeccionAccesorios.humidificador).map(([key, value]) => {
-              if (typeof value === 'boolean') {
-                return (
-                  <div key={key} className="flex justify-between items-center">
-                    <Label htmlFor={`humidificador-${key}`}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
-                    <YesNoOptions
-                      id={`humidificador-${key}`}
-                      value={value}
-                      onChange={(newValue) => handleCheckboxChange('inspeccionAccesorios.humidificador', key, newValue)}
-                    />
-                  </div>
-                );
-              }
-              return null;
-            })}
-          </div>
-        </div>
-        <div className="border p-4 mb-4 rounded">
-          <h3 className="font-semibold mb-2">COMPRESOR</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="compresor-modelo">Modelo:</Label>
-              <Input
-                id="compresor-modelo"
-                value={formData.inspeccionAccesorios.compresor.modelo}
-                onChange={(e) => handleCheckboxChange('inspeccionAccesorios.compresor', 'modelo', e.target.checked)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="compresor-ns">N/S:</Label>
-              <Input
-                id="compresor-ns"
-                value={formData.inspeccionAccesorios.compresor.ns}
-                onChange={(e) => handleCheckboxChange('inspeccionAccesorios.compresor', 'ns', e.target.checked)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-2">
-            {Object.entries(formData.inspeccionAccesorios.compresor).map(([key, value]) => {
-              if (typeof value === 'boolean') {
-                return (
-                  <div key={key} className="flex justify-between items-center">
-                    <Label htmlFor={`compresor-${key}`}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
-                    <YesNoOptions
-                      id={`compresor-${key}`}
-                      value={value}
-                      onChange={(newValue) => handleCheckboxChange('inspeccionAccesorios.compresor', key, newValue)}
-                    />
-                  </div>
-                );
-              }
-              return null;
-            })}
-          </div>
-        </div>
+          ))}
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">5. CALIBRACIÓN Y REEMPLAZO DE EMPAQUES (Columna mantenimiento anual)</h2>
+        <h2 className="text-lg font-semibold mb-2">
+          5. LIMPIEZA (Solo si fuese necesario) (2da Columna mantenimiento
+          anual)
+        </h2>
         <div className="grid grid-cols-2 gap-4">
-          {Object.entries(formData.calibracionReemplazo).map(([key, value]) => (
+          {Object.entries(formData.limpieza).map(([key, value]) => (
             <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={`calibracionReemplazo-${key}`}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Label>
+              <Label htmlFor={`limpieza-${key}`}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
               <YesNoOptions
-                id={`calibracionReemplazo-${key}`}
+                id={`limpieza-${key}`}
                 value={value}
-                onChange={(newValue) => handleCheckboxChange('calibracionReemplazo', key, newValue)}
+                onChange={(newValue) =>
+                  handleCheckboxChange("limpieza", key, newValue)
+                }
               />
             </div>
           ))}
@@ -602,7 +665,10 @@ export default function FormularioMantenimientoVentiladorCPAP({
 
       <section className="flex justify-between">
         <div className="w-1/2 pr-2">
-          <Label htmlFor="firmaMantenimiento">Firma y Sello Mantenimiento:</Label>
+          <Label htmlFor="firmaMantenimiento" className="flex items-center">
+            Firma y Sello Mantenimiento:{" "}
+            <span className="text-red-500 ml-1">*</span>
+          </Label>
           <Input
             id="firmaMantenimiento"
             name="firmaMantenimiento"
@@ -612,7 +678,10 @@ export default function FormularioMantenimientoVentiladorCPAP({
           />
         </div>
         <div className="w-1/2 pl-2">
-          <Label htmlFor="firmaOperador">Firma y Sello Operador o encargado:</Label>
+          <Label htmlFor="firmaOperador" className="flex items-center">
+            Firma y Sello Operador o encargado:{" "}
+            <span className="text-red-500 ml-1">*</span>
+          </Label>
           <Input
             id="firmaOperador"
             name="firmaOperador"
@@ -624,9 +693,19 @@ export default function FormularioMantenimientoVentiladorCPAP({
       </section>
 
       <div className="mt-6 text-center">
-        <Button type="button" onClick={handleSubmit}>
-          Enviar Formulario de Mantenimiento
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!isFormValid}
+          className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
+        >
+          Enviar e Imprimir Formulario de Mantenimiento
         </Button>
+      </div>
+
+      <div className="mt-4 text-sm text-gray-500 text-center">
+        Los campos marcados con <span className="text-red-500">*</span> son
+        obligatorios
       </div>
     </div>
   );

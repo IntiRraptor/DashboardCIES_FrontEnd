@@ -175,9 +175,19 @@ export function MaintenanceScheduleForm({
 
     data.maintenanceItems.forEach((item, index) => {
       for (let i = 1; i <= parseInt(item.quantity); i++) {
+        let label = `${item.type} ${i}`;
+
+        if (item.type === "Preventivo") {
+          // Extraer el nombre del equipo del modelo de formulario
+          const equipmentName = item.model
+            .replace("Protocolo de Mantenimiento ", "")
+            .split(" ")[0];
+          label = `${equipmentName} ${i}`;
+        }
+
         tabs.push({
           id: `${item.type}-${index + 1}-${i}`,
-          label: `${item.type} ${i}`,
+          label: label,
           type: item.type,
           model: item.model,
         });
@@ -500,6 +510,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model ===
@@ -509,6 +521,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model === "Protocolo de Mantenimiento Ecografos" && (
@@ -517,6 +531,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model ===
@@ -526,6 +542,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model ===
@@ -535,6 +553,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model ===
@@ -544,6 +564,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model ===
@@ -553,6 +575,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model ===
@@ -562,6 +586,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model ===
@@ -571,6 +597,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                     {tab.model ===
@@ -580,6 +608,8 @@ export function MaintenanceScheduleForm({
                         onSubmit={handleFormSubmit}
                         initialData={[]}
                         isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
                       />
                     )}
                   </>

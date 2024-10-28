@@ -15,7 +15,7 @@ export const maintenanceTypes = [
   
   export const statuses = [
     { value: "Repuesto", label: "Repuesto" },
-    { value: "Solución rapida", label: "Solución rapida" },
+    { value: "Completado", label: "Completado" },
     { value: "De baja", label: "De baja" },
     { value: "Enviada a ON", label: "Enviada a ON" },
     { value: "Programado", label: "Programado" },
