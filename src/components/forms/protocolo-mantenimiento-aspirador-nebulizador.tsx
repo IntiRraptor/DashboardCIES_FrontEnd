@@ -14,10 +14,12 @@ import { es } from "date-fns/locale";
 
 const YesNoOptions = ({
   id,
-  defaultValue,
+  value,
+  onChange,
 }: {
   id: string;
-  defaultValue: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
 }) => (
   <div className="flex space-x-4">
     <div className="flex items-center space-x-2">
@@ -25,9 +27,9 @@ const YesNoOptions = ({
         type="radio"
         id={`${id}-si`}
         name={id}
-        value="si"
+        checked={value}
+        onChange={() => onChange(true)}
         className="radio-input"
-        defaultChecked={defaultValue === "si"}
       />
       <label htmlFor={`${id}-si`} className="radio-label">
         Sí
@@ -38,9 +40,9 @@ const YesNoOptions = ({
         type="radio"
         id={`${id}-no`}
         name={id}
-        value="no"
+        checked={!value}
+        onChange={() => onChange(false)}
         className="radio-input"
-        defaultChecked={defaultValue === "no"}
       />
       <label htmlFor={`${id}-no`} className="radio-label">
         No
@@ -48,44 +50,6 @@ const YesNoOptions = ({
     </div>
   </div>
 );
-
-const inspectionItems = {
-  visual: [
-    "El equipo presenta daños físicos notables.",
-    "El contenedor presenta daños físicos notables.",
-    "Paneles de control presenta daños físicos.",
-    "Hay conductores expuestos.",
-    "Los puertos y conectores presentan daños.",
-    "Limpieza deficiente.",
-    "Filtro Hidrófobo en buen estado.",
-    "Mano/Vacuometro en buen estado",
-    "Pedal en buen estado",
-    "Empaques/Orings en buen estado",
-  ],
-  electrical: [
-    "Interfaz de enchufe correcto.",
-    "Botones de control en buen estado.",
-    "Cable de Poder en buen estado.",
-    "Fusibles en buen estado.",
-    "Tipos de Fusibles",
-  ],
-  functional: [
-    "Encendido e inicialización correcto.",
-    "Generación de las presion adecuada.",
-    "Nivel de Ruido por vibración adecuado.",
-    "Cambio de puerto correcto.",
-    "Regulador en buen estado.",
-    "Funcionamiento a pedal correcto.",
-  ],
-  replacement: [
-    "Limpieza y desinfeccion interna",
-    "Limpieza de contactores electricos.",
-    "Limpieza de Paneles de Control y Teclado.",
-    "Desenpolvamiento interno.",
-    "Revisión de módulos y tarjetas.",
-    "Reemplazo de filtros hidrofobos.",
-  ],
-};
 
 export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
   equipment,
@@ -102,140 +66,135 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
   region: string;
   ubicacion: string;
 }) {
-  const [tipoEquipo, setTipoEquipo] = useState("Aspiradora");
-  const [marca, setMarca] = useState("");
-  const [modelo, setModelo] = useState("");
-  const [location, setLocation] = useState("");
-  const [numeroSerie, setNumeroSerie] = useState("");
-  const [codigoActivo, setCodigoActivo] = useState("");
-  const [fecha, setFecha] = useState("");
-  const [garantia, setGarantia] = useState("no");
-  const [sucursal, setSucursal] = useState("");
-  const [visualInspection, setVisualInspection] = useState([]);
-  const [electricalInspection, setElectricalInspection] = useState([]);
-  const [functionalInspection, setFunctionalInspection] = useState([]);
-  const [replacementInspection, setReplacementInspection] = useState([]);
-  const [observaciones, setObservaciones] = useState("");
-  const [firmaOperador, setFirmaOperador] = useState("");
-  const [firmaEncargado, setFirmaEncargado] = useState("");
+  const [formData, setFormData] = useState({
+    codigoActivo: "",
+    marca: "",
+    modelo: "",
+    ns: "",
+    garantia: false,
+    tipoEquipo: "Aspirador",
+    sucursal: "",
+    regional: region,
+    lugar: ubicacion,
+    fecha: "",
+    visualInspection: {
+      dañosFisicos: false,
+      dañosContenedor: false,
+      dañosPaneles: false,
+      conductoresExpuestos: false,
+      puertosConectoresDanados: false,
+      limpiezaDeficiente: false,
+      filtroHidrofobo: false,
+      manoVacuometro: false,
+      pedalBuenEstado: false,
+      empaquesOrings: false,
+    },
+    electricalInspection: {
+      interfazEnchufe: false,
+      botonesControl: false,
+      cablePoder: false,
+      fusibles: false,
+      tiposFusibles: false,
+    },
+    functionalInspection: {
+      encendidoInicializacion: false,
+      generacionPresion: false,
+      nivelRuido: false,
+      cambioPuerto: false,
+      regulador: false,
+      funcionamientoPedal: false,
+    },
+    replacementInspection: {
+      limpiezaInterna: false,
+      limpiezaContactores: false,
+      limpiezaPaneles: false,
+      desenpolvamientoInterno: false,
+      revisionModulos: false,
+      reemplazoFiltros: false,
+    },
+    observaciones: "",
+    firmaOperador: "",
+    firmaEncargado: "",
+  });
 
-  // Nuevo estado para controlar la validación del formulario
-  const [isFormValid, setIsFormValid] = useState(true);
-
-  // Función para validar el formulario
-  const validateForm = () => {
-    const isValid =
-      (location !== "" ? location : ubicacion) !== "" &&
-      fecha !== "" &&
-      codigoActivo !== "" &&
-      marca !== "" &&
-      modelo !== "" &&
-      numeroSerie !== "" &&
-      sucursal !== "" &&
-      region !== "" &&
-      firmaOperador !== "" &&
-      firmaEncargado !== "";
-
-    setIsFormValid(isValid);
-    return isValid;
-  };
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
-    validateForm();
-    console.log("isFormValid: ", isFormValid);
-  }, [
-    location,
-    fecha,
-    codigoActivo,
-    marca,
-    modelo,
-    numeroSerie,
-    sucursal,
-    region,
-    firmaOperador,
-    firmaEncargado,
-  ]);
-
-  useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && initialData) {
       const details = JSON.parse(initialData.details);
-      const foundEquipment = findEquipmentByCode(equipment, details.equipo);
-
-      setCodigoActivo(details.equipo || "");
-      setMarca(foundEquipment?.nombreaf || "");
-      setModelo(foundEquipment?.descaf || "");
-      setNumeroSerie(foundEquipment?.aux1 || "");
-      setTipoEquipo(details.tipoEquipo || "Aspiradora");
-      setLocation(details.ubicacion || "");
-      setFecha(details.fecha || "");
-      setGarantia(details.garantia || "no");
-      setSucursal(details.sucursal || "");
-      setVisualInspection(details.visualInspection || []);
-      setElectricalInspection(details.electricalInspection || []);
-      setFunctionalInspection(details.functionalInspection || []);
-      setReplacementInspection(details.replacementInspection || []);
-      setObservaciones(details.observaciones || "");
-      setFirmaOperador(details.firmaOperador || "");
-      setFirmaEncargado(details.firmaEncargado || "");
+      setFormData((prevState) => ({
+        ...prevState,
+        ...details,
+        codigoActivo: details.equipo || "",
+      }));
     }
   }, [initialData, isEditMode]);
 
   useEffect(() => {
     if (!isEditMode) {
-      const foundEquipment = findEquipmentByCode(equipment, codigoActivo);
+      const foundEquipment = findEquipmentByCode(
+        equipment,
+        formData.codigoActivo
+      );
       if (foundEquipment) {
-        setMarca(foundEquipment.nombreaf);
-        setModelo(foundEquipment.descaf);
-        setNumeroSerie(foundEquipment.aux1);
-      } else {
-        setMarca("");
-        setModelo("");
-        setNumeroSerie("");
+        setFormData((prevState) => ({
+          ...prevState,
+          marca: foundEquipment.nombreaf,
+          modelo: foundEquipment.descaf,
+          ns: foundEquipment.aux1,
+        }));
       }
     }
-  }, [equipment, codigoActivo, isEditMode]);
+  }, [equipment, formData.codigoActivo, isEditMode]);
+
+  useEffect(() => {
+    const isValid = Boolean(
+      formData.codigoActivo &&
+        formData.marca &&
+        formData.modelo &&
+        formData.ns &&
+        formData.sucursal &&
+        formData.regional &&
+        formData.lugar &&
+        formData.firmaOperador &&
+        formData.firmaEncargado
+    );
+    setIsFormValid(isValid);
+  }, [formData]);
+
+  const handleCheckboxChange = (
+    section: string,
+    field: string,
+    value: boolean
+  ) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [section]: {
+        ...prevState[section],
+        [field]: value,
+      },
+    }));
+  };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      // Mostrar mensaje de error o feedback al usuario
+    if (!isFormValid) {
       alert(
         "Por favor, complete todos los campos requeridos antes de enviar el formulario."
       );
       return;
     }
 
-    const getInspectionData = (items: string[]) => {
-      return items.map((item) => {
-        const input = document.querySelector(
-          `input[name="${item}"]:checked`
-        ) as HTMLInputElement;
-        return {
-          label: item,
-          value: input ? input.value === "si" : false,
-        };
-      });
-    };
-
-    const formData = {
-      ubicacion,
-      fecha,
-      garantia,
+    const submittedData = {
+      ...formData,
       tipo: "Preventivo",
-      sucursal,
-      regional: region,
-      equipo: codigoActivo,
+      equipo: formData.codigoActivo,
       costo: 0,
       estado: "Programado",
       typeForm: "Protocolo de Mantenimiento Aspirador Nebulizador",
-      visualInspection: getInspectionData(inspectionItems.visual),
-      electricalInspection: getInspectionData(inspectionItems.electrical),
-      functionalInspection: getInspectionData(inspectionItems.functional),
-      replacementInspection: getInspectionData(inspectionItems.replacement),
-      observaciones,
-      firmaOperador,
-      firmaEncargado,
+      regional: region,
+      ubicacion: ubicacion,
     };
-    await onSubmit(formData);
+    await onSubmit(submittedData);
     handlePrint();
   };
 
@@ -249,7 +208,7 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       printWindow.document.write(`
         <html>
           <head>
-            <title>Protocolo de Mantenimiento - ${tipoEquipo}</title>
+            <title>Protocolo de Mantenimiento - Aspirador Nebulizador</title>
             <style>
               body { 
                 font-family: Arial, sans-serif; 
@@ -311,12 +270,12 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
               <img src="${logoCies.src}" alt="Logo CIES" class="logo" />
               <div class="title">
                 <h1>COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
-                <h2>${tipoEquipo.toUpperCase()}</h2>
+                <h2>ASPIRADOR NEBULIZADOR</h2>
                 <p>Vigencia desde: ${fechaVigencia}</p>
               </div>
               <div class="date-info">
-                <p>Lugar: ${location}</p>
-                <p>Fecha: ${fecha}</p>
+                <p>Lugar: ${formData.lugar}</p>
+                <p>Fecha: ${formData.fecha}</p>
               </div>
             </div>
 
@@ -325,35 +284,35 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
               <div class="grid">
                 <div class="item">
                   <span>Código de Activo:</span>
-                  <span>${codigoActivo}</span>
+                  <span>${formData.codigoActivo}</span>
                 </div>
                 <div class="item">
                   <span>Marca:</span>
-                  <span>${marca}</span>
+                  <span>${formData.marca}</span>
                 </div>
                 <div class="item">
                   <span>Modelo:</span>
-                  <span>${modelo}</span>
+                  <span>${formData.modelo}</span>
                 </div>
                 <div class="item">
                   <span>N/S:</span>
-                  <span>${numeroSerie}</span>
+                  <span>${formData.ns}</span>
                 </div>
                 <div class="item">
                   <span>Garantía:</span>
-                  <span>${garantia === "si" ? "Sí" : "No"}</span>
+                  <span>${formData.garantia ? "Sí" : "No"}</span>
                 </div>
                 <div class="item">
                   <span>Tipo:</span>
-                  <span>${tipoEquipo}</span>
+                  <span>${formData.tipoEquipo}</span>
                 </div>
                 <div class="item">
                   <span>Sucursal:</span>
-                  <span>${sucursal}</span>
+                  <span>${formData.sucursal}</span>
                 </div>
                 <div class="item">
                   <span>Regional:</span>
-                  <span>${region}</span>
+                  <span>${formData.regional}</span>
                 </div>
               </div>
             </div>
@@ -361,20 +320,12 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
             <div class="section">
               <div class="section-title">1. INSPECCIÓN VISUAL</div>
               <div class="grid">
-                ${inspectionItems.visual
+                ${Object.entries(formData.visualInspection)
                   .map(
-                    (item) => `
+                    ([key, value]) => `
                   <div class="item">
-                    <span>${item}</span>
-                    <span>${
-                      (
-                        document.querySelector(
-                          `input[name="${item}"]:checked`
-                        ) as HTMLInputElement
-                      )?.value === "si"
-                        ? "Sí"
-                        : "No"
-                    }</span>
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
                   </div>
                 `
                   )
@@ -385,20 +336,12 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
             <div class="section">
               <div class="section-title">2. INSPECCIÓN ELÉCTRICA</div>
               <div class="grid">
-                ${inspectionItems.electrical
+                ${Object.entries(formData.electricalInspection)
                   .map(
-                    (item) => `
+                    ([key, value]) => `
                   <div class="item">
-                    <span>${item}</span>
-                    <span>${
-                      (
-                        document.querySelector(
-                          `input[name="${item}"]:checked`
-                        ) as HTMLInputElement
-                      )?.value === "si"
-                        ? "Sí"
-                        : "No"
-                    }</span>
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
                   </div>
                 `
                   )
@@ -409,20 +352,12 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
             <div class="section">
               <div class="section-title">3. INSPECCIÓN FUNCIONAL</div>
               <div class="grid">
-                ${inspectionItems.functional
+                ${Object.entries(formData.functionalInspection)
                   .map(
-                    (item) => `
+                    ([key, value]) => `
                   <div class="item">
-                    <span>${item}</span>
-                    <span>${
-                      (
-                        document.querySelector(
-                          `input[name="${item}"]:checked`
-                        ) as HTMLInputElement
-                      )?.value === "si"
-                        ? "Sí"
-                        : "No"
-                    }</span>
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
                   </div>
                 `
                   )
@@ -433,20 +368,12 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
             <div class="section">
               <div class="section-title">4. REEMPLAZO DE EMPAQUES, MEMBRANAS Y COJINETE</div>
               <div class="grid">
-                ${inspectionItems.replacement
+                ${Object.entries(formData.replacementInspection)
                   .map(
-                    (item) => `
+                    ([key, value]) => `
                   <div class="item">
-                    <span>${item}</span>
-                    <span>${
-                      (
-                        document.querySelector(
-                          `input[name="${item}"]:checked`
-                        ) as HTMLInputElement
-                      )?.value === "si"
-                        ? "Sí"
-                        : "No"
-                    }</span>
+                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
                   </div>
                 `
                   )
@@ -456,16 +383,16 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
 
             <div class="section">
               <div class="section-title">OBSERVACIONES</div>
-              <p>${observaciones}</p>
+              <p>${formData.observaciones}</p>
             </div>
 
             <div class="signatures">
               <div class="signature-line">
-                <p>${firmaOperador}</p>
+                <p>${formData.firmaOperador}</p>
                 <p>Firma del Operador</p>
               </div>
               <div class="signature-line">
-                <p>${firmaEncargado}</p>
+                <p>${formData.firmaEncargado}</p>
                 <p>Firma del Encargado del Equipo</p>
               </div>
             </div>
@@ -493,42 +420,20 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
           <h1 className="text-2xl font-bold">
             RECIBO DE MANTENIMIENTO PREVENTIVO PLANIFICADO
           </h1>
-          <div className="flex justify-center space-x-4 mt-2">
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="aspiradora"
-                name="tipoEquipo"
-                value="Aspiradora"
-                checked={tipoEquipo === "Aspiradora"}
-                onChange={() => setTipoEquipo("Aspiradora")}
-              />
-              <label htmlFor="aspiradora">Aspiradora</label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="nebulizador"
-                name="tipoEquipo"
-                value="Nebulizador"
-                checked={tipoEquipo === "Nebulizador"}
-                onChange={() => setTipoEquipo("Nebulizador")}
-              />
-              <label htmlFor="nebulizador">Nebulizador</label>
-            </div>
-          </div>
         </div>
         <div className="text-right">
           <div className="mb-2">
-            <Label htmlFor="ubicacion" className="flex items-center">
-              Ubicación: <span className="text-red-500 ml-1">*</span>
+            <Label htmlFor="lugar" className="flex items-center">
+              Lugar: <span className="text-red-500 ml-1">*</span>
             </Label>
             <Input
-              id="ubicacion"
+              id="lugar"
+              name="lugar"
               className="w-40"
-              value={location !== "" ? location : ubicacion}
-              onChange={(e) => setLocation(e.target.value)}
-              required
+              value={formData.lugar}
+              onChange={(e) =>
+                setFormData({ ...formData, lugar: e.target.value })
+              }
             />
           </div>
           <div>
@@ -537,11 +442,13 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
             </Label>
             <Input
               id="fecha"
+              name="fecha"
               type="date"
               className="w-40"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              required
+              value={formData.fecha}
+              onChange={(e) =>
+                setFormData({ ...formData, fecha: e.target.value })
+              }
             />
           </div>
         </div>
@@ -556,42 +463,69 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
             </Label>
             <Input
               id="codigoActivo"
-              value={codigoActivo}
-              onChange={(e) => setCodigoActivo(e.target.value)}
-              required
+              name="codigoActivo"
+              value={formData.codigoActivo}
+              onChange={(e) =>
+                setFormData({ ...formData, codigoActivo: e.target.value })
+              }
             />
           </div>
           <div>
             <Label htmlFor="marca">Marca:</Label>
-            <Input id="marca" value={marca} readOnly />
+            <Input id="marca" name="marca" value={formData.marca} readOnly />
           </div>
           <div>
             <Label htmlFor="modelo">Modelo:</Label>
-            <Input id="modelo" value={modelo} readOnly />
+            <Input id="modelo" name="modelo" value={formData.modelo} readOnly />
           </div>
           <div>
-            <Label htmlFor="numeroSerie">N/S:</Label>
-            <Input id="numeroSerie" value={numeroSerie} readOnly />
+            <Label htmlFor="ns">N/S:</Label>
+            <Input id="ns" name="ns" value={formData.ns} readOnly />
           </div>
           <div>
             <Label>Garantía:</Label>
-            <YesNoOptions id="garantia" defaultValue={garantia} />
+            <YesNoOptions
+              id="garantia"
+              value={formData.garantia}
+              onChange={(value) =>
+                setFormData({ ...formData, garantia: value })
+              }
+            />
           </div>
           <div>
-            <Label>Tipo:</Label>
-            <div className="text-sm">{tipoEquipo}</div>
+            <Label htmlFor="tipoEquipo">Tipo:</Label>
+            <select
+              id="tipoEquipo"
+              name="tipoEquipo"
+              value={formData.tipoEquipo}
+              onChange={(e) =>
+                setFormData({ ...formData, tipoEquipo: e.target.value })
+              }
+              className="w-full p-2 border rounded"
+            >
+              <option value="Aspirador">Aspirador</option>
+              <option value="Nebulizador">Nebulizador</option>
+            </select>
           </div>
           <div>
             <Label htmlFor="sucursal">Sucursal:</Label>
             <Input
               id="sucursal"
-              value={sucursal}
-              onChange={(e) => setSucursal(e.target.value)}
+              name="sucursal"
+              value={formData.sucursal}
+              onChange={(e) =>
+                setFormData({ ...formData, sucursal: e.target.value })
+              }
             />
           </div>
           <div>
             <Label htmlFor="regional">Regional:</Label>
-            <Input id="regional" value={region} readOnly />
+            <Input
+              id="regional"
+              name="regional"
+              value={formData.regional}
+              readOnly
+            />
           </div>
         </div>
       </section>
@@ -599,17 +533,19 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">1. Inspección Visual</h2>
         <div className="space-y-2">
-          {inspectionItems.visual.map((item, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <Label htmlFor={`visual-${index}`}>{item}</Label>
+          {Object.entries(formData.visualInspection).map(([key, value]) => (
+            <div key={key} className="flex justify-between items-center">
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
               <YesNoOptions
-                id={item}
-                defaultValue={
-                  visualInspection[index]
-                    ? (visualInspection[index] as any).value
-                      ? "si"
-                      : "no"
-                    : "no"
+                id={key}
+                value={value}
+                onChange={(newValue) =>
+                  handleCheckboxChange("visualInspection", key, newValue)
                 }
               />
             </div>
@@ -620,17 +556,19 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">2. Inspección Eléctrica</h2>
         <div className="space-y-2">
-          {inspectionItems.electrical.map((item, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <Label htmlFor={`electrical-${index}`}>{item}</Label>
+          {Object.entries(formData.electricalInspection).map(([key, value]) => (
+            <div key={key} className="flex justify-between items-center">
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
               <YesNoOptions
-                id={item}
-                defaultValue={
-                  electricalInspection[index]
-                    ? (electricalInspection[index] as any).value
-                      ? "si"
-                      : "no"
-                    : "no"
+                id={key}
+                value={value}
+                onChange={(newValue) =>
+                  handleCheckboxChange("electricalInspection", key, newValue)
                 }
               />
             </div>
@@ -641,17 +579,19 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">3. Inspección Funcional</h2>
         <div className="space-y-2">
-          {inspectionItems.functional.map((item, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <Label htmlFor={`functional-${index}`}>{item}</Label>
+          {Object.entries(formData.functionalInspection).map(([key, value]) => (
+            <div key={key} className="flex justify-between items-center">
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
               <YesNoOptions
-                id={item}
-                defaultValue={
-                  functionalInspection[index]
-                    ? (functionalInspection[index] as any).value
-                      ? "si"
-                      : "no"
-                    : "no"
+                id={key}
+                value={value}
+                onChange={(newValue) =>
+                  handleCheckboxChange("functionalInspection", key, newValue)
                 }
               />
             </div>
@@ -665,17 +605,19 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
           necesario)
         </h2>
         <div className="space-y-2">
-          {inspectionItems.replacement.map((item, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <Label htmlFor={`replacement-${index}`}>{item}</Label>
+          {Object.entries(formData.replacementInspection).map(([key, value]) => (
+            <div key={key} className="flex justify-between items-center">
+              <Label htmlFor={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase())}
+                :
+              </Label>
               <YesNoOptions
-                id={item}
-                defaultValue={
-                  replacementInspection[index]
-                    ? (replacementInspection[index] as any).value
-                      ? "si"
-                      : "no"
-                    : "no"
+                id={key}
+                value={value}
+                onChange={(newValue) =>
+                  handleCheckboxChange("replacementInspection", key, newValue)
                 }
               />
             </div>
@@ -688,8 +630,11 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
         <Textarea
           placeholder="Ingrese cualquier observación adicional aquí (opcional)"
           className="w-full h-24"
-          value={observaciones}
-          onChange={(e) => setObservaciones(e.target.value)}
+          name="observaciones"
+          value={formData.observaciones}
+          onChange={(e) =>
+            setFormData({ ...formData, observaciones: e.target.value })
+          }
         />
       </section>
 
@@ -700,10 +645,12 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
           </Label>
           <Input
             id="firmaOperador"
+            name="firmaOperador"
             className="mt-1"
-            value={firmaOperador}
-            onChange={(e) => setFirmaOperador(e.target.value)}
-            required
+            value={formData.firmaOperador}
+            onChange={(e) =>
+              setFormData({ ...formData, firmaOperador: e.target.value })
+            }
           />
         </div>
         <div className="w-1/2 pl-2">
@@ -713,10 +660,12 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
           </Label>
           <Input
             id="firmaEncargado"
+            name="firmaEncargado"
             className="mt-1"
-            value={firmaEncargado}
-            onChange={(e) => setFirmaEncargado(e.target.value)}
-            required
+            value={formData.firmaEncargado}
+            onChange={(e) =>
+              setFormData({ ...formData, firmaEncargado: e.target.value })
+            }
           />
         </div>
       </section>
@@ -732,7 +681,6 @@ export default function FormularioProtocoloMantenimientoAspiradorNebulizador({
         </Button>
       </div>
 
-      {/* Mensaje opcional para mostrar campos requeridos */}
       <div className="mt-4 text-sm text-gray-500 text-center">
         Los campos marcados con <span className="text-red-500">*</span> son
         obligatorios

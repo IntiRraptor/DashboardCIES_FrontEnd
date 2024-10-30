@@ -94,6 +94,8 @@ export function MaintenanceScheduleForm({
   const [formTabs, setFormTabs] = useState<
     { id: string; label: string; type: string; model: string }[]
   >([]);
+  const [formDataMap, setFormDataMap] = useState<Record<string, any>>({});
+  const [activeTab, setActiveTab] = useState<string>("");
 
   const maintenanceTypes = [
     "Preventivo",
@@ -220,20 +222,16 @@ export function MaintenanceScheduleForm({
     }
   };
 
-  const handleFormSubmit = async (formData: any) => {
-    // Store the form data in the state
+  const handleFormSubmit = async (formData: any, tabId: string) => {
     const data: MaintenanceFormValues = form.getValues();
-    console.log("Form Data:", formData);
 
     try {
-      console.log("Data Maintenance:", formData);
-
       if (!formData) {
         throw new Error("No se ha enviado ningún formulario");
       }
 
       const formattedData = {
-        tipo: formData.tipo, // Use the specific form's type
+        tipo: formData.tipo,
         fechaInicio: data.dateRange.from.toISOString(),
         fechaFin: data.dateRange.to.toISOString(),
         hora: data.time,
@@ -241,19 +239,26 @@ export function MaintenanceScheduleForm({
         equipo: formData.equipo,
         estado: formData.estado,
         costo: formData.costo && formData.costo > 0 ? formData.costo : 0,
-        details: JSON.stringify(formData), // Include form-specific details
+        details: JSON.stringify(formData),
       };
-
-      console.log("Formatted Data Maintenance:", formattedData);
 
       const response = await createMantenimiento(formattedData);
       toast({
         title: "Mantenimiento Programado",
         description: "El mantenimiento se ha programado correctamente.",
       });
-      form.reset(defaultValues);
-      setFormTabs([]);
-      setStep(1);
+
+      setFormTabs((prevTabs) => prevTabs.filter((tab) => tab.id !== tabId));
+      setFormDataMap((prevData) => {
+        const newData = { ...prevData };
+        delete newData[tabId];
+        return newData;
+      });
+
+      if (formTabs.length === 1) {
+        form.reset(defaultValues);
+        setStep(1);
+      }
     } catch (error) {
       console.error("Error al programar mantenimiento:", error);
       toast({
@@ -264,10 +269,21 @@ export function MaintenanceScheduleForm({
     }
   };
 
+  const handleTabChange = (tabId: string) => {
+    if (activeTab) {
+      setFormDataMap((prevData) => ({
+        ...prevData,
+        [activeTab]: form.getValues(),
+      }));
+    }
+    setActiveTab(tabId);
+    form.reset(formDataMap[tabId] || {});
+  };
+
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
+        onSubmit={form.handleSubmit((data) => handleFormSubmit(data, formTabs[0].id))}
         className="space-y-8"
       >
         <FormField
@@ -489,7 +505,10 @@ export function MaintenanceScheduleForm({
         )}
 
         {formTabs.length > 0 && (
-          <Tabs defaultValue={formTabs[0].id}>
+          <Tabs
+            defaultValue={formTabs[0].id}
+            onValueChange={handleTabChange}
+          >
             <div className="w-full overflow-x-auto">
               <TabsList className="flex-nowrap">
                 {formTabs.map((tab) => (
@@ -507,8 +526,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo de Mantenimiento Aspirador Nebulizador" && (
                       <FormularioProtocoloMantenimientoAspiradorNebulizador
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -518,8 +537,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo de Mantenimiento Criocauterio Termoablación" && (
                       <PreventivoForm
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -528,8 +547,8 @@ export function MaintenanceScheduleForm({
                     {tab.model === "Protocolo de Mantenimiento Ecografos" && (
                       <FormularioMantenimientoEcografo
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -539,8 +558,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo de Mantenimiento Video Colposcopio" && (
                       <FormularioMantenimientoColoscopio
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -550,8 +569,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo Mantenimiento Torre Laparoscopia" && (
                       <FormularioMantenimientoLaparoscopia
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -561,8 +580,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo de Mantenimiento Electrobisturi" && (
                       <FormularioMantenimientoElectrobisturi
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -572,8 +591,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo de Mantenimiento Mesa QX y Lamp Cialitica" && (
                       <FormularioMantenimientoMesaQuirurgica
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -583,8 +602,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo de Mantenimiento Incubadora ServoCuna Fototerapia" && (
                       <FormularioMantenimientoIncubadora
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -594,8 +613,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo de Mantenimiento MaqAnes Vent CPAP." && (
                       <FormularioMantenimientoVentiladorCPAP
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -605,8 +624,8 @@ export function MaintenanceScheduleForm({
                       "Protocolo de Mantenimiento Monitores_Fetal_ECG" && (
                       <FormularioMantenimientoMonitor
                         equipment={equipment}
-                        onSubmit={handleFormSubmit}
-                        initialData={[]}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
                         isEditMode={false}
                         region={form.getValues("region")}
                         ubicacion={form.getValues("region")}
@@ -617,16 +636,16 @@ export function MaintenanceScheduleForm({
                 {tab.type === "Capacitación" && (
                   <TrainingFormComponent
                     equipment={equipment}
-                    onSubmit={handleFormSubmit}
-                    initialData={[]}
+                    onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                    initialData={formDataMap[tab.id] || []}
                     isEditMode={false}
                   />
                 )}
                 {tab.type === "Correctivo" && (
                   <CorrectiveMaintenanceFormComponent
                     equipment={equipment}
-                    onSubmit={handleFormSubmit}
-                    initialData={[]}
+                    onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                    initialData={formDataMap[tab.id] || []}
                     isEditMode={false}
                   />
                 )}

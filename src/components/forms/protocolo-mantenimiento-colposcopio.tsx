@@ -191,10 +191,22 @@ export default function FormularioMantenimientoColoscopio({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    
+    if (name.includes('.')) {
+      const [section, field] = name.split('.');
+      setFormData((prevState) => ({
+        ...prevState,
+        [section]: {
+          ...prevState[section],
+          [field]: value,
+        },
+      }));
+    } else {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    }
   };
 
   const handleCheckboxChange = (
@@ -594,13 +606,7 @@ export default function FormularioMantenimientoColoscopio({
                   id={key}
                   name={`inspeccionElectrica.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionElectrica",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-40"
                 />
               )}
@@ -633,13 +639,7 @@ export default function FormularioMantenimientoColoscopio({
                   id={key}
                   name={`inspeccionFuncional.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionFuncional",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-40"
                 />
               )}

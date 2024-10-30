@@ -32,8 +32,11 @@ export default function CronogramaGeneral() {
             endDate.setHours(hours + 1, minutes);
           }
 
+          const details = JSON.parse(item.details);
+          const typeForm = details.typeForm;
+
           return {
-            title: item.tipo,
+            title: `${item.tipo} - ${typeForm}`,
             start: startDate,
             end: endDate,
             status: item.estado,

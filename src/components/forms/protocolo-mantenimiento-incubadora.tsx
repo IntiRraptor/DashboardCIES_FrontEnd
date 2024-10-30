@@ -191,10 +191,22 @@ export default function FormularioMantenimientoIncubadora({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    
+    if (name.includes('.')) {
+      const [section, field] = name.split('.');
+      setFormData((prevState) => ({
+        ...prevState,
+        [section]: {
+          ...prevState[section],
+          [field]: value,
+        },
+      }));
+    } else {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    }
   };
 
   const handleCheckboxChange = (
@@ -529,13 +541,7 @@ export default function FormularioMantenimientoIncubadora({
                   id={key}
                   name={`inspeccionElectrica.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionElectrica",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-40"
                 />
               )}
@@ -568,13 +574,7 @@ export default function FormularioMantenimientoIncubadora({
                   id={key}
                   name={`inspeccionFuncional.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionFuncional",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-40"
                 />
               )}

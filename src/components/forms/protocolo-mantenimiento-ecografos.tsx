@@ -75,7 +75,7 @@ export default function FormularioMantenimientoEcografo({
     swVer: "",
     sucursal: "",
     regional: region,
-    lugar: "",
+    lugar: region,
     fecha: "",
     inspeccionVisual: {
       dañosFisicos: false,
@@ -265,51 +265,14 @@ export default function FormularioMantenimientoEcografo({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    if (name === "inspeccionAccesorios.cantidadTransductores") {
-      const numTransductores = Math.max(1, Math.min(9, parseInt(value) || 1));
-      const newTransductores = [...formData.inspeccionAccesorios.transductores];
-      while (newTransductores.length < numTransductores) {
-        newTransductores.push({
-          modelo: "",
-          ns: "",
-          ca: "",
-          pruebasCeldas: false,
-          conectorSinDaños: false,
-          interfazGoma: false,
-          limpiezaAdecuada: false,
-          cableConexion: false,
-        });
-      }
+    
+    if (name.includes('.')) {
+      const [section, field] = name.split('.');
       setFormData((prevState) => ({
         ...prevState,
-        inspeccionAccesorios: {
-          ...prevState.inspeccionAccesorios,
-          cantidadTransductores: numTransductores.toString(),
-          transductores: newTransductores.slice(0, numTransductores),
-        },
-      }));
-    } else if (name === "inspeccionAccesorios.cantidadImpresoras") {
-      const numImpresoras = Math.max(1, Math.min(9, parseInt(value) || 1));
-      const newImpresoras = [...formData.inspeccionAccesorios.impresoras];
-      while (newImpresoras.length < numImpresoras) {
-        newImpresoras.push({
-          codigo: "",
-          modelo: "",
-          ns: "",
-          impresionOptima: false,
-          nivelBrillo: "",
-          nivelContraste: "",
-          tipoPapel: "",
-          conexion: "",
-          feedActivado: false,
-        });
-      }
-      setFormData((prevState) => ({
-        ...prevState,
-        inspeccionAccesorios: {
-          ...prevState.inspeccionAccesorios,
-          cantidadImpresoras: numImpresoras.toString(),
-          impresoras: newImpresoras.slice(0, numImpresoras),
+        [section]: {
+          ...prevState[section],
+          [field]: value,
         },
       }));
     } else {
@@ -716,78 +679,342 @@ export default function FormularioMantenimientoEcografo({
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">2. INSPECCIÓN ELÉCTRICA</h2>
         <div className="grid grid-cols-2 gap-4">
-          {Object.entries(formData.inspeccionElectrica).map(([key, value]) => (
-            <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={key}>
-                {key
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (str) => str.toUpperCase())}
-                :
-              </Label>
-              {typeof value === "boolean" ? (
-                <YesNoOptions
-                  id={key}
-                  value={value}
-                  onChange={(newValue) =>
-                    handleCheckboxChange("inspeccionElectrica", key, newValue)
-                  }
-                />
-              ) : (
-                <Input
-                  id={key}
-                  name={`inspeccionElectrica.${key}`}
-                  value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionElectrica",
-                      key,
-                      e.target.checked
-                    )
-                  }
-                  className="w-40"
-                />
-              )}
-            </div>
-          ))}
+          <div>
+            <Label htmlFor="voltajeLinea">Voltaje Línea:</Label>
+            <Input
+              id="voltajeLinea"
+              name="inspeccionElectrica.voltajeLinea"
+              value={formData.inspeccionElectrica.voltajeLinea}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="voltajeUPSConectado">Voltaje UPS Conectado:</Label>
+            <Input
+              id="voltajeUPSConectado"
+              name="inspeccionElectrica.voltajeUPSConectado"
+              value={formData.inspeccionElectrica.voltajeUPSConectado}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="voltajeUPSDesconectado">Voltaje UPS Desconectado:</Label>
+            <Input
+              id="voltajeUPSDesconectado"
+              name="inspeccionElectrica.voltajeUPSDesconectado"
+              value={formData.inspeccionElectrica.voltajeUPSDesconectado}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="voltajeNT">Voltaje NT:</Label>
+            <Input
+              id="voltajeNT"
+              name="inspeccionElectrica.voltajeNT"
+              value={formData.inspeccionElectrica.voltajeNT}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="voltajeFT">Voltaje FT:</Label>
+            <Input
+              id="voltajeFT"
+              name="inspeccionElectrica.voltajeFT"
+              value={formData.inspeccionElectrica.voltajeFT}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="marcaUPS">Marca UPS:</Label>
+            <Input
+              id="marcaUPS"
+              name="inspeccionElectrica.marcaUPS"
+              value={formData.inspeccionElectrica.marcaUPS}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="fusiblesBuenEstado">Fusibles en buen estado:</Label>
+            <YesNoOptions
+              id="fusiblesBuenEstado"
+              value={formData.inspeccionElectrica.fusiblesBuenEstado}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionElectrica", "fusiblesBuenEstado", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="resistenciaFusibles">Resistencia de fusibles:</Label>
+            <Input
+              id="resistenciaFusibles"
+              name="inspeccionElectrica.resistenciaFusibles"
+              value={formData.inspeccionElectrica.resistenciaFusibles}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="cablePoder">Cable de poder:</Label>
+            <YesNoOptions
+              id="cablePoder"
+              value={formData.inspeccionElectrica.cablePoder}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionElectrica", "cablePoder", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="continuidadCablePoder">Continuidad del cable de poder:</Label>
+            <YesNoOptions
+              id="continuidadCablePoder"
+              value={formData.inspeccionElectrica.continuidadCablePoder}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionElectrica", "continuidadCablePoder", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="interfazEnchufe">Interfaz enchufe:</Label>
+            <YesNoOptions
+              id="interfazEnchufe"
+              value={formData.inspeccionElectrica.interfazEnchufe}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionElectrica", "interfazEnchufe", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="iluminacionLED">Iluminación LED:</Label>
+            <YesNoOptions
+              id="iluminacionLED"
+              value={formData.inspeccionElectrica.iluminacionLED}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionElectrica", "iluminacionLED", value)
+              }
+            />
+          </div>
         </div>
       </section>
 
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">3. INSPECCIÓN FUNCIONAL</h2>
         <div className="grid grid-cols-2 gap-4">
-          {Object.entries(formData.inspeccionFuncional).map(([key, value]) => (
-            <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={key}>
-                {key
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (str) => str.toUpperCase())}
-                :
-              </Label>
-              {typeof value === "boolean" ? (
-                <YesNoOptions
-                  id={key}
-                  value={value}
-                  onChange={(newValue) =>
-                    handleCheckboxChange("inspeccionFuncional", key, newValue)
-                  }
-                />
-              ) : (
-                <Input
-                  id={key}
-                  name={`inspeccionFuncional.${key}`}
-                  value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionFuncional",
-                      key,
-                      e.target.checked
-                    )
-                  }
-                  className="w-40"
-                />
-              )}
-            </div>
-          ))}
+          <div>
+            <Label htmlFor="estadoAlmacenamiento">Estado Almacenamiento:</Label>
+            <Input
+              id="estadoAlmacenamiento"
+              name="inspeccionFuncional.estadoAlmacenamiento"
+              value={formData.inspeccionFuncional.estadoAlmacenamiento}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="versionSO">Versión SO:</Label>
+            <Input
+              id="versionSO"
+              name="inspeccionFuncional.versionSO"
+              value={formData.inspeccionFuncional.versionSO}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="encendidoInicializacion">Encendido de inicialización:</Label>
+            <YesNoOptions
+              id="encendidoInicializacion"
+              value={formData.inspeccionFuncional.encendidoInicializacion}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "encendidoInicializacion", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="reconocimientoTransductores">Reconocimiento de transductores:</Label>
+            <YesNoOptions
+              id="reconocimientoTransductores"
+              value={formData.inspeccionFuncional.reconocimientoTransductores}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "reconocimientoTransductores", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="coloresPantalla">Colores de pantalla:</Label>
+            <YesNoOptions
+              id="coloresPantalla"
+              value={formData.inspeccionFuncional.coloresPantalla}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "coloresPantalla", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="almacenamientoPacientes">Almacenamiento de pacientes:</Label>
+            <YesNoOptions
+              id="almacenamientoPacientes"
+              value={formData.inspeccionFuncional.almacenamientoPacientes}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "almacenamientoPacientes", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="movimientoTrackball">Movimiento Trackball:</Label>
+            <YesNoOptions
+              id="movimientoTrackball"
+              value={formData.inspeccionFuncional.movimientoTrackball}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "movimientoTrackball", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="touchPanelSensibilidad">Touch Panel Sensibilidad:</Label>
+            <YesNoOptions
+              id="touchPanelSensibilidad"
+              value={formData.inspeccionFuncional.touchPanelSensibilidad}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "touchPanelSensibilidad", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="touchPanelProtegido">Touch Panel Protegido:</Label>
+            <YesNoOptions
+              id="touchPanelProtegido"
+              value={formData.inspeccionFuncional.touchPanelProtegido}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "touchPanelProtegido", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="tecladoFuncional">Teclado Funcional:</Label>
+            <YesNoOptions
+              id="tecladoFuncional"
+              value={formData.inspeccionFuncional.tecladoFuncional}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "tecladoFuncional", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="claveSoftware">Clave Software:</Label>
+            <Input
+              id="claveSoftware"
+              name="inspeccionFuncional.claveSoftware"
+              value={formData.inspeccionFuncional.claveSoftware}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="funcionModoB">Función Modo B:</Label>
+            <YesNoOptions
+              id="funcionModoB"
+              value={formData.inspeccionFuncional.funcionModoB}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "funcionModoB", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="funcionModoC">Función Modo C:</Label>
+            <YesNoOptions
+              id="funcionModoC"
+              value={formData.inspeccionFuncional.funcionModoC}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "funcionModoC", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="funcionModoPD">Función Modo PD:</Label>
+            <YesNoOptions
+              id="funcionModoPD"
+              value={formData.inspeccionFuncional.funcionModoPD}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "funcionModoPD", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="funcionModoPW">Función Modo PW:</Label>
+            <YesNoOptions
+              id="funcionModoPW"
+              value={formData.inspeccionFuncional.funcionModoPW}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "funcionModoPW", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="funcionModoCW">Función Modo CW:</Label>
+            <YesNoOptions
+              id="funcionModoCW"
+              value={formData.inspeccionFuncional.funcionModoCW}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "funcionModoCW", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="funcionModo3D">Función Modo 3D:</Label>
+            <YesNoOptions
+              id="funcionModo3D"
+              value={formData.inspeccionFuncional.funcionModo3D}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "funcionModo3D", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="funcionModo4D">Función Modo 4D:</Label>
+            <YesNoOptions
+              id="funcionModo4D"
+              value={formData.inspeccionFuncional.funcionModo4D}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "funcionModo4D", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="medicionesCorrectas">Mediciones Correctas:</Label>
+            <YesNoOptions
+              id="medicionesCorrectas"
+              value={formData.inspeccionFuncional.medicionesCorrectas}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "medicionesCorrectas", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="bodyMarksCorrectos">Body Marks Correctos:</Label>
+            <YesNoOptions
+              id="bodyMarksCorrectos"
+              value={formData.inspeccionFuncional.bodyMarksCorrectos}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "bodyMarksCorrectos", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="insercionTexto">Inserción de Texto:</Label>
+            <YesNoOptions
+              id="insercionTexto"
+              value={formData.inspeccionFuncional.insercionTexto}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "insercionTexto", value)
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="sonidoAudible">Sonido Audible:</Label>
+            <YesNoOptions
+              id="sonidoAudible"
+              value={formData.inspeccionFuncional.sonidoAudible}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionFuncional", "sonidoAudible", value)
+              }
+            />
+          </div>
         </div>
       </section>
 
@@ -911,7 +1138,7 @@ export default function FormularioMantenimientoEcografo({
                       {key
                         .replace(/([A-Z])/g, " $1")
                         .replace(/^./, (str) => str.toUpperCase())}
-                      :
+                        :
                     </Label>
                     {typeof value === "boolean" ? (
                       <YesNoOptions
@@ -987,9 +1214,7 @@ export default function FormularioMantenimientoEcografo({
                   id={`conexionDicom-${key}`}
                   name={`conexionDicom.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange("conexionDicom", key, e.target.checked)
-                  }
+                  onChange={handleInputChange}
                   className="w-full"
                 />
               )}

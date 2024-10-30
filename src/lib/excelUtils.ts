@@ -21,17 +21,23 @@ export const downloadEquipmentAsExcel = (data: any[]) => {
 };
 
 export const downloadMaintenanceHistoryAsExcel = (data: any[]) => {
-  const worksheet = XLSX.utils.json_to_sheet(data.map(item => ({
-    'Tipo Mantenimiento': item.tipo,
-    'Regional': item.region,
-    'Fecha Inicio': item.fechaInicio,
-    'Fecha Fin': item.fechaFin,
-    'Código de Activo': item.equipo,
-    'Estado': item.estado
-  })));
+  data.forEach(item => {
+    const details = JSON.parse(item.details);
+    const excelData = [{
+      'Tipo Mantenimiento': item.tipo,
+      'Regional': item.region,
+      'Fecha Inicio': item.fechaInicio,
+      'Fecha Fin': item.fechaFin,
+      'Código de Activo': item.equipo,
+      'Estado': item.estado,
+      ...details
+    }];
 
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Historial Mantenimientos");
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Historial Mantenimientos");
 
-  XLSX.writeFile(workbook, "historial_mantenimientos.xlsx");
+    const fileName = `${item.tipo}-${details.typeForm}-${item.equipo}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  });
 };

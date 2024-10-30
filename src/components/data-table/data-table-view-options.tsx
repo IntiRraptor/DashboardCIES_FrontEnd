@@ -16,6 +16,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { downloadEquipmentAsExcel, downloadMaintenanceHistoryAsExcel } from "@/lib/excelUtils";
+import { useMemo } from 'react';
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;
@@ -34,11 +35,14 @@ export function DataTableViewOptions<TData>({
   data,
   downloadType,
 }: DataTableViewOptionsProps<TData>) {
+  const selectedRows = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+  const isDownloadDisabled = downloadType === 'maintenance' && selectedRows.length === 0;
+
   const handleDownload = () => {
-    if (downloadType === 'equipment') {
+    if (downloadType === 'maintenance') {
+      downloadMaintenanceHistoryAsExcel(selectedRows);
+    } else if (downloadType === 'equipment') {
       downloadEquipmentAsExcel(data);
-    } else if (downloadType === 'maintenance') {
-      downloadMaintenanceHistoryAsExcel(data);
     }
   };
 
@@ -92,6 +96,7 @@ export function DataTableViewOptions<TData>({
           size="sm" 
           className="h-8 lg:flex" 
           onClick={handleDownload}
+          disabled={isDownloadDisabled}
         >
           <DownloadIcon className="mr-2 h-4 w-4" />
           Descargar

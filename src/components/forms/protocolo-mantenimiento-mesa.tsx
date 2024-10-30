@@ -184,15 +184,25 @@ export default function FormularioMantenimientoMesaQuirurgica({
   }, [formData]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    
+    if (name.includes('.')) {
+      const [section, field] = name.split('.');
+      setFormData((prevState) => ({
+        ...prevState,
+        [section]: {
+          ...prevState[section],
+          [field]: value,
+        },
+      }));
+    } else {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    }
   };
 
   const handleCheckboxChange = (
@@ -541,13 +551,7 @@ export default function FormularioMantenimientoMesaQuirurgica({
                   id={key}
                   name={`inspeccionElectrica.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionElectrica",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-40"
                 />
               )}
@@ -580,13 +584,7 @@ export default function FormularioMantenimientoMesaQuirurgica({
                   id={key}
                   name={`inspeccionFuncional.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionFuncional",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-40"
                 />
               )}
@@ -603,13 +601,7 @@ export default function FormularioMantenimientoMesaQuirurgica({
             id="cantidadAccesorios"
             name="inspeccionAccesorios.cantidadAccesorios"
             value={formData.inspeccionAccesorios.cantidadAccesorios}
-            onChange={(e) =>
-              handleCheckboxChange(
-                "inspeccionAccesorios",
-                "cantidadAccesorios",
-                e.target.checked
-              )
-            }
+            onChange={handleInputChange}
             className="w-40"
           />
         </div>
@@ -643,7 +635,7 @@ export default function FormularioMantenimientoMesaQuirurgica({
 
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">
-          6. CONEXI��N PARA TRANSMISI��N EXTERNA
+          6. CONEXIÓN PARA TRANSMISIÓN EXTERNA
         </h2>
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(formData.conexionTransmision).map(([key, value]) => (
@@ -667,13 +659,7 @@ export default function FormularioMantenimientoMesaQuirurgica({
                   id={`conexionTransmision-${key}`}
                   name={`conexionTransmision.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "conexionTransmision",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-full"
                 />
               )}

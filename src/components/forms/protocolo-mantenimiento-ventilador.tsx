@@ -72,7 +72,7 @@ export default function FormularioMantenimientoVentiladorCPAP({
     modelo: "",
     ns: "",
     garantia: false,
-    tipo: "Ventilador",
+    tipo: "Ventilador CPAP",
     sucursal: "",
     regional: region,
     lugar: ubicacion,
@@ -86,6 +86,9 @@ export default function FormularioMantenimientoVentiladorCPAP({
       acumulacionPolvo: false,
       pantallaBuenEstado: false,
       botonesBuenEstado: false,
+      manguerasConexionesBuenEstado: false,
+      filtrosLimpios: false,
+      sensoresIntactos: false,
     },
     inspeccionElectrica: {
       equipoCuentaBateria: false,
@@ -95,18 +98,23 @@ export default function FormularioMantenimientoVentiladorCPAP({
       cablePoderBuenEstado: false,
       continuidadCablePoder: false,
       interfazEnchufesCorrecto: false,
-      iluminacionLEDAmbiente: false,
+      voltajeOperacionCorrecto: false,
+      consumoCorrienteCorrecto: false,
     },
     inspeccionFuncional: {
       encendidoInicializacion: false,
       reconocimientoAccesorios: false,
       alarmasSonido: false,
-      almacenamientoPacientes: false,
-      controlTemperatura: false,
-      controlHumedad: false,
-      controlIluminacion: false,
-      riseTimeTemp: "",
-      nivelLumenes: "",
+      controlPresion: false,
+      controlFlujo: false,
+      controlVolumen: false,
+      controlOxigeno: false,
+      medicionPresion: "",
+      medicionFlujo: "",
+      medicionVolumen: "",
+      medicionOxigeno: "",
+      calibracionSensores: false,
+      pruebaFugasCircuito: false,
     },
     inspeccionAccesorios: {
       cantidadAccesorios: "1",
@@ -124,14 +132,14 @@ export default function FormularioMantenimientoVentiladorCPAP({
       ],
     },
     limpieza: {
-      memoriaLimpieza: false,
-      contactoresElectricos: false,
-      panelesControlTeclado: false,
-      desenpolvarChasis: false,
-      desenpolvamientoInterno: false,
-      revisionModulosTarjetas: false,
-      revisionRuedasFrenos: false,
-      contenedorAgua: false,
+      limpiezaExterna: false,
+      limpiezaInterna: false,
+      limpiezaFiltros: false,
+      limpiezaCircuito: false,
+      limpiezaSensores: false,
+      desinfeccionComponentes: false,
+      cambioFiltros: false,
+      lubricacionPartes: false,
     },
     observaciones: "",
     firmaMantenimiento: "",
@@ -187,10 +195,22 @@ export default function FormularioMantenimientoVentiladorCPAP({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    
+    if (name.includes('.')) {
+      const [section, field] = name.split('.');
+      setFormData((prevState) => ({
+        ...prevState,
+        [section]: {
+          ...prevState[section],
+          [field]: value,
+        },
+      }));
+    } else {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    }
   };
 
   const handleCheckboxChange = (
@@ -226,7 +246,7 @@ export default function FormularioMantenimientoVentiladorCPAP({
       equipo: formData.codigoActivo,
       costo: 0,
       estado: "Programado",
-      typeForm: "Protocolo de Mantenimiento Ventilador CPAP",
+      typeForm: "Protocolo de Mantenimiento MaqAnes Vent CPAP.",
       regional: region,
       ubicacion: ubicacion,
     };
@@ -498,13 +518,7 @@ export default function FormularioMantenimientoVentiladorCPAP({
                   id={key}
                   name={`inspeccionElectrica.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionElectrica",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-40"
                 />
               )}
@@ -537,13 +551,7 @@ export default function FormularioMantenimientoVentiladorCPAP({
                   id={key}
                   name={`inspeccionFuncional.${key}`}
                   value={value}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "inspeccionFuncional",
-                      key,
-                      e.target.checked
-                    )
-                  }
+                  onChange={handleInputChange}
                   className="w-40"
                 />
               )}

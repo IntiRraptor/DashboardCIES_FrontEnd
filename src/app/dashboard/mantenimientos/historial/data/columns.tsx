@@ -213,6 +213,7 @@ const CellComponent = ({ row }) => {
   };
 
   const handleOpenModal = () => {
+    console.log("Open Modal: ", details);
     setModalOpen(true);
   };
 
@@ -221,26 +222,23 @@ const CellComponent = ({ row }) => {
   };
 
   const renderForm = () => {
-    if (type === "Capacitación") {
-      return (
-        <TrainingFormComponent
-          equipment={equipment}
-          onSubmit={handleSubmitEdition}
-          initialData={initialData}
-          isEditMode={true}
-        />
-      );
-    } else if (type === "Correctivo") {
-      return (
-        <CorrectiveMaintenanceFormComponent
-          equipment={equipment}
-          onSubmit={handleSubmitEdition}
-          initialData={initialData}
-          isEditMode={true}
-        />
-      );
-    } else if (type === "Preventivo") {
+    console.log("Type:", type);
+    console.log("Details:", details);
+    console.log("TypeForm:", details.typeForm);
+
+    if (type === "Preventivo") {
       switch (details.typeForm) {
+        case "Protocolo de Mantenimiento MaqAnes Vent CPAP.":
+          return (
+            <FormularioMantenimientoVentiladorCPAP
+              equipment={equipment}
+              onSubmit={handleSubmitEdition}
+              initialData={initialData}
+              isEditMode={true}
+              region={""}
+              ubicacion={""}
+            />
+          );
         case "Protocolo de Mantenimiento Criocauterio Termoablación":
           return (
             <PreventivoForm
@@ -321,17 +319,6 @@ const CellComponent = ({ row }) => {
         case "Protocolo de Mantenimiento Incubadora ServoCuna Fototerapia":
           return (
             <FormularioMantenimientoIncubadora
-              equipment={equipment}
-              onSubmit={handleSubmitEdition}
-              initialData={initialData}
-              isEditMode={true}
-              region={""}
-              ubicacion={""}
-            />
-          );
-        case "Protocolo de Mantenimiento MaqAnes Vent CPAP.":
-          return (
-            <FormularioMantenimientoVentiladorCPAP
               equipment={equipment}
               onSubmit={handleSubmitEdition}
               initialData={initialData}
