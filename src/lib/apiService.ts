@@ -3,7 +3,7 @@ const API_URL = "https://dashboardciesbackend-production.up.railway.app";
 const EQUIPMENT_API_URL =
   "https://medibit.cies.org.bo/legacy/afciesrednacional/equiposmedicos";
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMwMzY5NTg5LCJpYXQiOjE3MzAxNTM1ODksImp0aSI6IjNmZWRmMDZlZTk1YzQ2ODVhMzFmZDQwZWZjMThmZjVmIiwidXNlcl9pZCI6MzcyfQ.XjegpnHir5GWpOR2q-5sAadq1xYppgw62hwVyqcwgZc";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMwNjAyMDE5LCJpYXQiOjE3MzAzODYwMTksImp0aSI6IjIyYjEzMzc2MmJiNTQ2MWFhZjQ2ODZhMDNkZWY1MGFkIiwidXNlcl9pZCI6MzcyfQ.hR2pl9SIRAGmbuZsJ7zvkWx6D5mkaxhO5hw3df8gQQc";
 
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { ExternalRequest } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
@@ -83,11 +83,8 @@ export const deleteMantenimiento = async (id: string) => {
 };
 
 // Solicitudes Externas
-export const getSolicitudesExternas = async (filters = {}) => {
-  const queryParams = new URLSearchParams(filters).toString();
-  const response = await fetch(
-    `${API_URL}/api/solicitudes-externas?${queryParams}`
-  );
+export const getSolicitudesExternas = async () => {
+  const response = await fetch(`${API_URL}/api/solicitudes-externas`);
   if (!response.ok) {
     throw new Error("Error fetching solicitudes externas");
   }
