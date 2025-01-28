@@ -3,7 +3,7 @@ const API_URL = "https://dashboardciesbackend-production.up.railway.app";
 const EQUIPMENT_API_URL =
   "https://medibit.cies.org.bo/legacy/afciesrednacional/equiposmedicos";
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMxMDU3MDEzLCJpYXQiOjE3MzA4NDEwMTMsImp0aSI6IjkyNDM5YmU3MjYwZTQ0NTliYjlhODc0MTg2M2YyZjZjIiwidXNlcl9pZCI6MzcyfQ.v2nYIfR5TYEInfMU-E7A1CFGyE-heiGtRtI0Zo0ecM0";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM4MjQyMjY3LCJpYXQiOjE3MzgwMjYyNjcsImp0aSI6ImM2NzEwMWU3MzU3MjQwOThiNWRlYjc4MGUxOWJjMjAyIiwidXNlcl9pZCI6MzcyfQ.LwzdYY9Xqt61X7bBXStSxxiJ3k7inYoxTjtHmAdUYVE";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { ExternalRequest } from "@/app/dashboard/mantenimientos/solicitudes-externas/data/schema";
 
