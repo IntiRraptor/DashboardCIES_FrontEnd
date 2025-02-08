@@ -42,6 +42,7 @@ import FormularioMantenimientoMesaQuirurgica from "./protocolo-mantenimiento-mes
 import FormularioMantenimientoIncubadora from "./protocolo-mantenimiento-incubadora";
 import FormularioMantenimientoVentiladorCPAP from "./protocolo-mantenimiento-ventilador";
 import FormularioMantenimientoMonitor from "./protocolo-mantenimiento-monitor";
+import FormularioMantenimientoAutoclave from "./protocolo-mantenimiento-autoclave";
 import { TrainingFormComponent } from "./training-form";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { CorrectiveMaintenanceFormComponent } from "./corrective-maintenance-form";
@@ -115,6 +116,7 @@ export function MaintenanceScheduleForm({
     "Protocolo de Mantenimiento Incubadora ServoCuna Fototerapia",
     "Protocolo de Mantenimiento MaqAnes Vent CPAP.",
     "Protocolo de Mantenimiento Monitores_Fetal_ECG",
+    "Protocolo de Mantenimiento Autoclave",
   ];
 
   const locations = [
@@ -623,6 +625,16 @@ export function MaintenanceScheduleForm({
                     {tab.model ===
                       "Protocolo de Mantenimiento Monitores_Fetal_ECG" && (
                       <FormularioMantenimientoMonitor
+                        equipment={equipment}
+                        onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                        initialData={formDataMap[tab.id] || []}
+                        isEditMode={false}
+                        region={form.getValues("region")}
+                        ubicacion={form.getValues("region")}
+                      />
+                    )}
+                    {tab.model === "Protocolo de Mantenimiento Autoclave" && (
+                      <FormularioMantenimientoAutoclave
                         equipment={equipment}
                         onSubmit={(data) => handleFormSubmit(data, tab.id)}
                         initialData={formDataMap[tab.id] || []}

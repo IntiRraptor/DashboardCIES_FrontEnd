@@ -21,6 +21,7 @@ import FormularioMantenimientoElectrobisturi from "@/components/forms/protocolo-
 import FormularioMantenimientoIncubadora from "@/components/forms/protocolo-mantenimiento-incubadora";
 import FormularioMantenimientoVentiladorCPAP from "@/components/forms/protocolo-mantenimiento-ventilador";
 import FormularioMantenimientoMonitor from "@/components/forms/protocolo-mantenimiento-monitor";
+import FormularioMantenimientoAutoclave from "@/components/forms/protocolo-mantenimiento-autoclave";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { getEquipment, updateMantenimiento } from "@/lib/apiService";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
@@ -165,32 +166,61 @@ const CellComponent = ({ row }) => {
     fetchEquipment();
   }, []);
 
-  const initialData = row.original;
-
-  const type = row.original.tipo;
-  const details = JSON.parse(row.original.details);
+  let details;
+  try {
+    details = JSON.parse(row.original.details);
+    // Limpiamos las propiedades duplicadas
+    Object.keys(details).forEach(key => {
+      if (key.includes('.')) {
+        delete details[key];
+      }
+    });
+    
+    // Aseguramos que las estructuras de datos existan
+    details.inspeccionAccesorios = details.inspeccionAccesorios || {};
+    details.inspeccionVisual = details.inspeccionVisual || {};
+    details.inspeccionElectrica = details.inspeccionElectrica || {};
+    details.inspeccionFuncional = details.inspeccionFuncional || {};
+    
+    console.log("Cleaned and Structured Details:", details);
+  } catch (error) {
+    console.error("Error parsing details:", error);
+    console.log("Raw details value:", row.original.details);
+    details = {
+      inspeccionAccesorios: {},
+      inspeccionVisual: {},
+      inspeccionElectrica: {},
+      inspeccionFuncional: {}
+    };
+  }
 
   const handleSubmitEdition = async (formData: any) => {
     try {
-      console.log("Form Data:", formData);
+      console.log("Form Data in Submit:", formData);
 
       if (!formData) {
         throw new Error("No se ha enviado ningún formulario");
       }
 
       const formattedData = {
-        tipo: formData.tipo,
+        tipo: formData.tipo || details.tipo,
         fechaInicio: row.original.fechaInicio,
         fechaFin: row.original.fechaFin,
-        hora: formData.time,
-        region: formData.region,
-        equipo: formData.equipo,
-        estado: formData.estado,
+        hora: formData.time || details.time,
+        region: formData.region || details.region,
+        equipo: formData.codigoActivo || details.codigoActivo,
+        estado: formData.estado || details.estado,
         costo: formData.costo && formData.costo > 0 ? formData.costo : 0,
-        details: JSON.stringify(formData),
+        details: JSON.stringify({
+          ...formData,
+          inspeccionAccesorios: formData.inspeccionAccesorios || details.inspeccionAccesorios,
+          inspeccionVisual: formData.inspeccionVisual || details.inspeccionVisual,
+          inspeccionElectrica: formData.inspeccionElectrica || details.inspeccionElectrica,
+          inspeccionFuncional: formData.inspeccionFuncional || details.inspeccionFuncional
+        })
       };
 
-      console.log("Formatted Data Maintenance:", formattedData);
+      console.log("Formatted Data for Update:", formattedData);
 
       const response = await updateMantenimiento(
         row.original._id,
@@ -201,7 +231,7 @@ const CellComponent = ({ row }) => {
         description: "El mantenimiento se ha actualizado correctamente.",
       });
       setModalOpen(false);
-      window.location.reload(); // Recarga la página actual
+      window.location.reload();
     } catch (error) {
       console.error("Error al actualizar mantenimiento:", error);
       toast({
@@ -213,7 +243,7 @@ const CellComponent = ({ row }) => {
   };
 
   const handleOpenModal = () => {
-    console.log("Open Modal: ", details);
+    console.log("Opening Modal with Details:", details);
     setModalOpen(true);
   };
 
@@ -222,21 +252,20 @@ const CellComponent = ({ row }) => {
   };
 
   const renderForm = () => {
-    console.log("Type:", type);
-    console.log("Details:", details);
-    console.log("TypeForm:", details.typeForm);
+    console.log("Rendering Form with Type:", details.tipo);
+    console.log("And TypeForm:", details.typeForm);
 
-    if (type === "Preventivo") {
+    if (details.tipo === "Preventivo") {
       switch (details.typeForm) {
         case "Protocolo de Mantenimiento MaqAnes Vent CPAP.":
           return (
             <FormularioMantenimientoVentiladorCPAP
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo de Mantenimiento Criocauterio Termoablación":
@@ -244,10 +273,10 @@ const CellComponent = ({ row }) => {
             <PreventivoForm
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo de Mantenimiento Aspirador Nebulizador":
@@ -255,10 +284,10 @@ const CellComponent = ({ row }) => {
             <FormularioProtocoloMantenimientoAspiradorNebulizador
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo de Mantenimiento Ecografos":
@@ -266,10 +295,10 @@ const CellComponent = ({ row }) => {
             <FormularioMantenimientoEcografo
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo de Mantenimiento Video Colposcopio":
@@ -277,10 +306,10 @@ const CellComponent = ({ row }) => {
             <FormularioMantenimientoColoscopio
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo Mantenimiento Torre Laparoscopia":
@@ -288,10 +317,10 @@ const CellComponent = ({ row }) => {
             <FormularioMantenimientoLaparoscopia
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo de Mantenimiento Electrobisturi":
@@ -299,10 +328,10 @@ const CellComponent = ({ row }) => {
             <FormularioMantenimientoElectrobisturi
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo de Mantenimiento Mesa QX y Lamp Cialitica":
@@ -310,10 +339,10 @@ const CellComponent = ({ row }) => {
             <FormularioMantenimientoMesaQuirurgica
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo de Mantenimiento Incubadora ServoCuna Fototerapia":
@@ -321,10 +350,10 @@ const CellComponent = ({ row }) => {
             <FormularioMantenimientoIncubadora
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         case "Protocolo de Mantenimiento Monitores_Fetal_ECG":
@@ -332,10 +361,21 @@ const CellComponent = ({ row }) => {
             <FormularioMantenimientoMonitor
               equipment={equipment}
               onSubmit={handleSubmitEdition}
-              initialData={initialData}
+              initialData={details}
               isEditMode={true}
-              region={""}
-              ubicacion={""}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
+            />
+          );
+        case "Protocolo de Mantenimiento Autoclave":
+          return (
+            <FormularioMantenimientoAutoclave
+              equipment={equipment}
+              onSubmit={handleSubmitEdition}
+              initialData={details}
+              isEditMode={true}
+              region={details.region || ""}
+              ubicacion={details.lugar || ""}
             />
           );
         default:
