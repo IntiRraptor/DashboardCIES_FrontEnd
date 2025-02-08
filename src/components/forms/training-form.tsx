@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { findEquipmentByCode } from "@/utils/equipmentUtils";
+import * as QRCode from "qrcode.react";
+import { v4 as uuidv4 } from 'uuid';
 
 export function TrainingFormComponent({
   equipment,
@@ -16,43 +18,27 @@ export function TrainingFormComponent({
 }: {
   equipment: EquipmentDetail[];
   onSubmit: (data: any) => void;
-  initialData: any;
+  initialData?: Partial<any>;
   isEditMode: boolean;
 }) {
   const [formData, setFormData] = useState({
-    date: "",
-    regional: "",
-    serviceType: "",
-    trainingTitle: "",
-    medicalEquipment: "",
-    brand: "",
-    model: "",
-    series: "",
+    id: initialData?.id || uuidv4(),
+    date: initialData?.date || "",
+    regional: initialData?.regional || "",
+    serviceType: initialData?.serviceType || "",
+    trainingTitle: initialData?.title || "",
+    medicalEquipment: initialData?.medicalEquipment || "",
+    brand: initialData?.brand || "",
+    model: initialData?.model || "",
+    series: initialData?.series || "",
   });
 
-  const [dynamicFields, setDynamicFields] = useState<
-    { id: number; name: string; value: string }[]
-  >([]);
-  const [nextId, setNextId] = useState(1);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleDynamicFieldChange = (id: number, value: string) => {
-    setDynamicFields((prev) =>
-      prev.map((field) => (field.id === id ? { ...field, value } : field))
-    );
-  };
-
-  const addDynamicField = () => {
-    setDynamicFields((prev) => [
-      ...prev,
-      { id: nextId, name: `Campo ${nextId}`, value: "" },
-    ]);
-    setNextId((prev) => prev + 1);
   };
 
   useEffect(() => {
@@ -80,46 +66,38 @@ export function TrainingFormComponent({
   }, [equipment, formData.medicalEquipment, isEditMode]);
 
   useEffect(() => {
-    if (isEditMode) {
-      const details = JSON.parse(initialData.details);
-      setFormData({
-        date: details.date || "",
-        regional: details.regional || "",
-        serviceType: details.serviceType || "",
-        trainingTitle: details.trainingTitle || "",
-        medicalEquipment: details.medicalEquipment || "",
-        brand: details.brand || "",
-        model: details.model || "",
-        series: details.series || "",
-      });
-      setDynamicFields(
-        details.dynamicFields.map((value: string, index: number) => ({
-          id: index + 1,
-          name: `Campo ${index + 1}`,
-          value,
-        }))
-      );
-      setNextId(details.dynamicFields.length + 1);
-    }
-  }, [initialData, isEditMode]);
+    // Generate attendance URL for QR code
+    const attendanceUrl = `${window.location.origin}/attendance/${formData.id}`;
+    setQrCodeUrl(attendanceUrl);
+  }, [formData.id]);
 
   const handleSubmit = () => {
-    const data = {
-      ...formData,
+    const submittedData = {
       tipo: "Capacitación",
-      typeForm: "Capacitacion",
       equipo: formData.medicalEquipment,
       estado: "Programado",
-      dynamicFields: dynamicFields.map((field) => field.value),
+      costo: 0,
+      typeForm: "Formulario de Capacitación",
+      regional: formData.regional,
+      ubicacion: formData.serviceType,
+      details: JSON.stringify({
+        id: formData.id,
+        title: formData.trainingTitle,
+        date: formData.date,
+        regional: formData.regional,
+        serviceType: formData.serviceType,
+        medicalEquipment: formData.medicalEquipment,
+        brand: formData.brand,
+        model: formData.model,
+        series: formData.series,
+        qrCodeUrl: qrCodeUrl,
+        attendanceCount: 0,
+        submissions: [],
+        status: 'scheduled'
+      })
     };
-
-    console.log("data: ", data);
-
-    onSubmit(data);
-  };
-
-  const createGoogleForm = () => {
-    // setLoading(true);
+    console.log('Form data being submitted:', submittedData);
+    onSubmit(submittedData);
   };
 
   return (
@@ -138,6 +116,7 @@ export function TrainingFormComponent({
                 name="date"
                 value={formData.date}
                 onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -147,6 +126,7 @@ export function TrainingFormComponent({
                 name="regional"
                 value={formData.regional}
                 onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -156,6 +136,7 @@ export function TrainingFormComponent({
                 name="serviceType"
                 value={formData.serviceType}
                 onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -165,6 +146,7 @@ export function TrainingFormComponent({
                 name="trainingTitle"
                 value={formData.trainingTitle}
                 onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -174,6 +156,7 @@ export function TrainingFormComponent({
                 name="medicalEquipment"
                 value={formData.medicalEquipment}
                 onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -186,48 +169,28 @@ export function TrainingFormComponent({
             </div>
             <div className="space-y-2">
               <Label htmlFor="series">Serie</Label>
-              <Input
-                id="series"
-                name="series"
-                value={formData.series}
-                readOnly
-              />
+              <Input id="series" name="series" value={formData.series} readOnly />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {!isEditMode && (
+      {!isEditMode && qrCodeUrl && (
         <Card>
           <CardHeader>
-            <CardTitle>
-              Datos para Generar URL de asistencia de participantes
-            </CardTitle>
+            <CardTitle>Código QR para registro de asistencia</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {dynamicFields.map((field) => (
-              <div key={field.id} className="space-y-2">
-                <Label htmlFor={`dynamic-${field.id}`}>{field.name}</Label>
-                <Input
-                  id={`dynamic-${field.id}`}
-                  value={field.value}
-                  onChange={(e) =>
-                    handleDynamicFieldChange(field.id, e.target.value)
-                  }
-                  placeholder="Valor del campo"
-                />
-              </div>
-            ))}
-            <div className="flex space-x-4">
-              <Button type="button" onClick={addDynamicField}>
-                Añadir otro campo
-              </Button>
+            <div className="flex flex-col items-center space-y-4">
+              <QRCode.QRCodeSVG value={qrCodeUrl} size={200} />
+              <p className="text-sm text-muted-foreground">
+                Escanee este código QR para registrar su asistencia
+              </p>
               <Button
-                type="button"
-                onClick={createGoogleForm}
-                disabled={loading}
+                onClick={() => window.open(qrCodeUrl, '_blank')}
+                variant="outline"
               >
-                {loading ? "Creando..." : "Generar URL"}
+                Abrir enlace de asistencia
               </Button>
             </div>
           </CardContent>
@@ -240,27 +203,26 @@ export function TrainingFormComponent({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            En fecha <span className="font-semibold">{formData.date}</span> en
-            la Regional de{" "}
-            <span className="font-semibold">{formData.regional}</span> Servicio
-            de <span className="font-semibold">{formData.serviceType}</span> se
+            En fecha <span className="font-semibold">{formData.date}</span> en la
+            Regional de <span className="font-semibold">{formData.regional}</span>{" "}
+            Servicio de{" "}
+            <span className="font-semibold">{formData.serviceType}</span> se
             efectuará la capacitación de{" "}
             <span className="font-semibold">{formData.trainingTitle}</span> del
             equipo médico{" "}
-            <span className="font-semibold">{formData.medicalEquipment}</span>{" "}
-            de Marca <span className="font-semibold">{formData.brand}</span>{" "}
-            Modelo <span className="font-semibold">{formData.model}</span> Serie{" "}
+            <span className="font-semibold">{formData.medicalEquipment}</span> de
+            Marca <span className="font-semibold">{formData.brand}</span> Modelo{" "}
+            <span className="font-semibold">{formData.model}</span> Serie{" "}
             <span className="font-semibold">{formData.series}</span>.
           </p>
           <p className="mt-4 text-sm text-muted-foreground">
-            Por favor confirmar su participación ingresando a la siguiente URL y
-            llenar los datos correspondientes.
+            Por favor escanee el código QR proporcionado para registrar su asistencia.
           </p>
         </CardContent>
       </Card>
 
       <Button type="button" onClick={handleSubmit} disabled={loading}>
-        {loading ? "Creando..." : isEditMode ? "Actualizar" : "Guardar"}
+        {loading ? "Guardando..." : isEditMode ? "Actualizar" : "Guardar"}
       </Button>
     </div>
   );
