@@ -11,6 +11,7 @@ import {
   ClipboardIcon,
   HistoryIcon,
   FileIcon,
+  UserCheckIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
@@ -72,6 +73,16 @@ export function Sidebar({ className }: SidebarProps) {
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               Cronograma General
+            </Button>
+            <Button
+              variant={
+                isActive("/dashboard/asistencia") ? "secondary" : "ghost"
+              }
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/asistencia")}
+            >
+              <UserCheckIcon className="mr-2 h-4 w-4" />
+              Asistencia
             </Button>
           </div>
         </div>
