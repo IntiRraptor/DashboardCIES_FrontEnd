@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AttendanceSubmission } from "@/types/attendance";
-import { v4 as uuidv4 } from 'uuid';
+import { submitAttendance } from "@/lib/api/training";
 
 export default function AttendancePage() {
   const params = useParams();
-  const sessionId = params.sessionId as string;
+  const sessionId = params?.sessionId as string;
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -31,26 +31,16 @@ export default function AttendancePage() {
     e.preventDefault();
     setLoading(true);
 
-    const submission: AttendanceSubmission = {
-      id: uuidv4(),
+    const submission = {
       ...formData,
-      submissionDateTime: new Date().toISOString(),
       trainingSessionId: sessionId,
     };
 
     try {
-      // TODO: Replace with your actual API endpoint
-      const response = await fetch('/api/attendance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submission),
-      });
+      console.log('submission: ', submission);
+      const response = await submitAttendance(submission);
 
-      if (!response.ok) {
-        throw new Error('Failed to submit attendance');
-      }
+      console.log('response: ', response);
 
       setSubmitted(true);
     } catch (error) {

@@ -651,6 +651,8 @@ export function MaintenanceScheduleForm({
                     onSubmit={(data) => handleFormSubmit(data, tab.id)}
                     initialData={formDataMap[tab.id] || []}
                     isEditMode={false}
+                    region={form.getValues("region")}
+                    ubicacion={form.getValues("region")}
                   />
                 )}
                 {tab.type === "Correctivo" && (

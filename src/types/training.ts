@@ -1,33 +1,31 @@
 export interface TrainingSession {
+  _id: string;
   id: string;
   title: string;
-  date: Date;
+  date: string;
   regional: string;
   serviceType: string;
-  medicalEquipment: string;
-  brand: string;
-  model: string;
-  series: string;
-  qrCodeUrl?: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  createdAt: Date;
-  updatedAt: Date;
+  medicalEquipment: {
+    code: string;
+    brand: string;
+    model: string;
+    series: string;
+  };
+  status: 'scheduled' | 'completed';
+  attendeeCount?: number;
+  trainingSessionId: string;
 }
 
-export interface Attendance {
-  id: string;
-  trainingSession: string | TrainingSession;
+export interface Attendee {
+  id?: string;
   fullName: string;
   role: string;
   phone: string;
   email: string;
-  submissionDateTime: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  submissionDateTime?: string;
+  trainingSessionId: string;
 }
 
 export interface TrainingSessionFormData extends Omit<TrainingSession, 'id' | 'createdAt' | 'updatedAt' | 'qrCodeUrl'> {
   id?: string;
-}
-
-export interface AttendanceFormData extends Omit<Attendance, 'id' | 'createdAt' | 'updatedAt' | 'submissionDateTime' | 'trainingSession'> {} 
+} 

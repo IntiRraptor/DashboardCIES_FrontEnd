@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getAllSessions, getSessionAttendance } from "@/lib/api/training";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -24,27 +21,51 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { TrainingSession, AttendanceSubmission } from "@/types/attendance";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DownloadIcon, EyeIcon } from "lucide-react";
+import { TrainingSession, Attendee } from "@/types/training";
+import * as QRCode from "qrcode.react";
 
 export default function AsistenciaPage() {
-  const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(
-    null
-  );
+  const [trainingSessions, setTrainingSessions] = useState<TrainingSession[]>([]);
+  const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // TODO: Replace with actual API call
-  const trainingSessions: TrainingSession[] = [];
+  useEffect(() => {
+    loadTrainingSessions();
+  }, []);
+
+  const loadTrainingSessions = async () => {
+    try {
+      const data = await getAllSessions();
+      setTrainingSessions(data);
+    } catch (error) {
+      toast.error('Error al cargar las sesiones');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAttendees = async (sessionId: string) => {
+    try {
+      console.log('sessionId: ', sessionId);
+      const data = await getSessionAttendance(sessionId);
+      console.log('data: ', data);
+      setAttendees(data);
+    } catch (error) {
+      toast.error('Error al cargar los asistentes');
+    }
+  };
 
   const exportToCSV = (session: TrainingSession) => {
     const headers = ["Nombre", "Cargo", "Teléfono", "Email", "Fecha y Hora"];
-    const data = session.submissions.map((submission) => [
-      submission.fullName,
-      submission.role,
-      submission.phone,
-      submission.email,
-      format(new Date(submission.submissionDateTime), "PPpp", { locale: es }),
+    const data = attendees.map((attendee) => [
+      attendee.fullName,
+      attendee.role,
+      attendee.phone,
+      attendee.email,
+      format(new Date(attendee.submissionDateTime!), "PPpp", { locale: es }),
     ]);
 
     const csvContent =
@@ -56,112 +77,135 @@ export default function AsistenciaPage() {
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `asistencia_${session.title}_${format(
-        new Date(session.date),
-        "yyyy-MM-dd"
-      )}.csv`
+      `asistencia_${session.title}_${format(new Date(session.date), "yyyy-MM-dd")}.csv`
     );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  const generateQrCodeUrl = (sessionId: string) => {
+    return `${window.location.origin}/attendance/${sessionId}`;
+  };
+
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+
   return (
     <div className="container mx-auto py-6">
-      <div className="flex flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Registro de Asistencia</CardTitle>
-            <CardDescription>
-              Gestione los registros de asistencia de las capacitaciones
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Regional</TableHead>
-                  <TableHead>Participantes</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+      <Card>
+        <CardHeader>
+          <CardTitle>Registro de Asistencia</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Título</TableHead>
+                <TableHead>Regional</TableHead>
+                <TableHead>Participantes</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {trainingSessions.map((session, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    {format(new Date(session.date), "PPP", { locale: es })}
+                  </TableCell>
+                  <TableCell>{session.title}</TableCell>
+                  <TableCell>{session.regional}</TableCell>
+                  <TableCell>{session.attendeeCount || 0}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedSession(session);
+                              loadAttendees(session._id);
+                            }}
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          <DialogHeader>
+                            <DialogTitle>
+                              Asistentes - {session.title}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Nombre</TableHead>
+                                <TableHead>Cargo</TableHead>
+                                <TableHead>Teléfono</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Fecha y Hora</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {attendees.map((attendee) => (
+                                <TableRow key={attendee.id}>
+                                  <TableCell>{attendee.fullName}</TableCell>
+                                  <TableCell>{attendee.role}</TableCell>
+                                  <TableCell>{attendee.phone}</TableCell>
+                                  <TableCell>{attendee.email}</TableCell>
+                                  <TableCell>
+                                    {format(
+                                      new Date(attendee.submissionDateTime!),
+                                      "PPpp",
+                                      { locale: es }
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </DialogContent>
+                      </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => exportToCSV(session)}
+                      >
+                        <DownloadIcon className="h-4 w-4" />
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            QR
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle>
+                              QR Code - {session.title}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="flex justify-center">
+                            <QRCode.QRCodeSVG value={generateQrCodeUrl(session._id)} size={200} />
+                          </div>
+                          <div className="mt-4 text-center">
+                            <a href={generateQrCodeUrl(session._id)} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                              Ir a la URL
+                            </a>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {trainingSessions.map((session) => (
-                  <TableRow key={session.id}>
-                    <TableCell>
-                      {format(new Date(session.date), "PPP", { locale: es })}
-                    </TableCell>
-                    <TableCell>{session.title}</TableCell>
-                    <TableCell>{session.regional}</TableCell>
-                    <TableCell>{session.submissions.length}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setSelectedSession(session)}
-                            >
-                              <EyeIcon className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-4xl">
-                            <DialogHeader>
-                              <DialogTitle>
-                                Asistentes - {session.title}
-                              </DialogTitle>
-                            </DialogHeader>
-                            <div className="mt-4">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead>Nombre</TableHead>
-                                    <TableHead>Cargo</TableHead>
-                                    <TableHead>Teléfono</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Fecha y Hora</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {session.submissions.map((submission) => (
-                                    <TableRow key={submission.id}>
-                                      <TableCell>{submission.fullName}</TableCell>
-                                      <TableCell>{submission.role}</TableCell>
-                                      <TableCell>{submission.phone}</TableCell>
-                                      <TableCell>{submission.email}</TableCell>
-                                      <TableCell>
-                                        {format(
-                                          new Date(submission.submissionDateTime),
-                                          "PPpp",
-                                          { locale: es }
-                                        )}
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => exportToCSV(session)}
-                        >
-                          <DownloadIcon className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 } 
