@@ -53,7 +53,20 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.0.5",
     "xlsx": "^0.18.5",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@fullcalendar/core": "version",
+    "@fullcalendar/daygrid": "version",
+    "@fullcalendar/interaction": "version",
+    "@fullcalendar/react": "version",
+    "@fullcalendar/timegrid": "version",
+    "@headlessui/react": "version",
+    "@radix-ui/react-alert-dialog": "version",
+    "@radix-ui/react-progress": "version",
+    "@radix-ui/react-radio-group": "version",
+    "@tanstack/react-query": "version",
+    "drizzle-orm": "version",
+    "postgres": "version",
+    "yup": "version"
   },
   "devDependencies": {
     "@types/node": "^20",
