@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAllSessions, getSessionAttendance } from "@/lib/api/training";
+import {
+  deleteSession,
+  getAllSessions,
+  getSessionAttendance,
+} from "@/lib/api/training";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "react-hot-toast";
@@ -22,13 +26,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DownloadIcon, EyeIcon } from "lucide-react";
+import { DownloadIcon, EyeIcon, TrashIcon } from "lucide-react";
 import { TrainingSession, Attendee } from "@/types/training";
 import * as QRCode from "qrcode.react";
 
 export default function AsistenciaPage() {
-  const [trainingSessions, setTrainingSessions] = useState<TrainingSession[]>([]);
-  const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
+  const [trainingSessions, setTrainingSessions] = useState<TrainingSession[]>(
+    []
+  );
+  const [selectedSession, setSelectedSession] =
+    useState<TrainingSession | null>(null);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +48,7 @@ export default function AsistenciaPage() {
       const data = await getAllSessions();
       setTrainingSessions(data);
     } catch (error) {
-      toast.error('Error al cargar las sesiones');
+      toast.error("Error al cargar las sesiones");
     } finally {
       setLoading(false);
     }
@@ -49,12 +56,12 @@ export default function AsistenciaPage() {
 
   const loadAttendees = async (sessionId: string) => {
     try {
-      console.log('sessionId: ', sessionId);
+      console.log("sessionId: ", sessionId);
       const data = await getSessionAttendance(sessionId);
-      console.log('data: ', data);
+      console.log("data: ", data);
       setAttendees(data);
     } catch (error) {
-      toast.error('Error al cargar los asistentes');
+      toast.error("Error al cargar los asistentes");
     }
   };
 
@@ -77,7 +84,10 @@ export default function AsistenciaPage() {
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `asistencia_${session.title}_${format(new Date(session.date), "yyyy-MM-dd")}.csv`
+      `asistencia_${session.title}_${format(
+        new Date(session.date),
+        "yyyy-MM-dd"
+      )}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -86,6 +96,13 @@ export default function AsistenciaPage() {
 
   const generateQrCodeUrl = (sessionId: string) => {
     return `${window.location.origin}/attendance/${sessionId}`;
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (confirm("¿Estás seguro de que deseas eliminar esta sesión?")) {
+      await deleteSession(sessionId);
+      loadTrainingSessions();
+    }
   };
 
   if (loading) {
@@ -184,20 +201,34 @@ export default function AsistenciaPage() {
                         </DialogTrigger>
                         <DialogContent className="max-w-sm">
                           <DialogHeader>
-                            <DialogTitle>
-                              QR Code - {session.title}
-                            </DialogTitle>
+                            <DialogTitle>QR Code - {session.title}</DialogTitle>
                           </DialogHeader>
                           <div className="flex justify-center">
-                            <QRCode.QRCodeSVG value={generateQrCodeUrl(session._id)} size={200} />
+                            <QRCode.QRCodeSVG
+                              value={generateQrCodeUrl(session._id)}
+                              size={200}
+                            />
                           </div>
                           <div className="mt-4 text-center">
-                            <a href={generateQrCodeUrl(session._id)} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                            <a
+                              href={generateQrCodeUrl(session._id)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-500 underline"
+                            >
                               Ir a la URL
                             </a>
                           </div>
                         </DialogContent>
                       </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteSession(session._id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <TrashIcon className="h-4 w-4 mr-2" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -208,4 +239,4 @@ export default function AsistenciaPage() {
       </Card>
     </div>
   );
-} 
+}
