@@ -11,9 +11,25 @@ export interface TrainingSession {
     model: string;
     series: string;
   };
-  status: 'scheduled' | 'completed';
+  status: "scheduled" | "completed";
   attendeeCount?: number;
   trainingSessionId: string;
+}
+
+export interface Session {
+  _id: string;
+  status: "scheduled" | "completed";
+  qrCodeUrl: string;
+  medicalEquipment: {
+    code: string;
+    brand: string;
+    model: string;
+    series: string;
+  };
+  title: string;
+  date: string;
+  regional: string;
+  serviceType: string;
 }
 
 export interface Attendee {
@@ -26,6 +42,10 @@ export interface Attendee {
   trainingSessionId: string;
 }
 
-export interface TrainingSessionFormData extends Omit<TrainingSession, 'id' | 'createdAt' | 'updatedAt' | 'qrCodeUrl'> {
+export interface TrainingSessionFormData
+  extends Omit<
+    TrainingSession,
+    "id" | "createdAt" | "updatedAt" | "qrCodeUrl"
+  > {
   id?: string;
-} 
+}
