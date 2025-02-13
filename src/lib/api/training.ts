@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { TrainingSession, TrainingSessionFormData, Attendee } from '../../types/training';
 
-// const BASE_URL = 'http://localhost:4000/api/training-sessions';
-const BASE_URL = "https://dashboardciesbackend-production-fee2.up.railway.app/api/training-sessions";
+const BASE_URL = 'http://localhost:4000/api';
+// const BASE_URL = "https://dashboardciesbackend-production-fee2.up.railway.app/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -13,56 +13,66 @@ const api = axios.create({
 
 // Training Sessions API
 export const getAllSessions = async (): Promise<TrainingSession[]> => {
-  const { data } = await api.get('/');
-  console.log('getAllSessions: ', data);
+  const { data } = await api.get('/training-sessions');
+  console.log(data)
   return data.data;
 };
 
 export const getSession = async (id: string): Promise<TrainingSession> => {
-  const { data } = await api.get(`/${id}`);
-  console.log('getSession: ', data);
+  const { data } = await api.get(`/training-sessions/${id}`);
   return data.data;
 };
 
-export const createSession = async (session: TrainingSessionFormData): Promise<TrainingSession> => {
-  const { data } = await api.post('/', session);
-  console.log('createSession: ', data);
+export const createSession = async (formData: TrainingSessionFormData): Promise<TrainingSession> => {
+  const trainingData = {
+    title: formData.title,
+    date: formData.date,
+    regional: formData.regional,
+    serviceType: formData.serviceType,
+    medicalEquipment: {
+      code: formData.medicalEquipment,
+      brand: formData.brand,
+      model: formData.model,
+      series: formData.series,
+    },
+    status: "scheduled" as const
+  };
+
+  const { data } = await api.post('/training-sessions', trainingData);
   return data;
 };
 
 export const updateSession = async (id: string, session: TrainingSessionFormData): Promise<TrainingSession> => {
-  const { data } = await api.put(`/${id}`, session);
-  console.log('updateSession: ', data);
+  const { data } = await api.put(`/training-sessions/${id}`, session);
   return data;
 };
 
 export const deleteSession = async (id: string): Promise<void> => {
-  await api.delete(`/${id}`);
-  console.log('deleteSession: ', id);
+  await api.delete(`/training-sessions/${id}`);
 };
 
 // Attendance API
 interface AttendanceRequest {
-  trainingSessionId: string;  // ID de la sesión de capacitación
-  fullName: string;          // Nombre completo del asistente
-  role: string;             // Rol del asistente
-  phone: string;            // Teléfono
-  email: string;            // Correo electrónico
+  trainingSessionId: string;
+  fullName: string;
+  role: string;
+  phone: string;
+  email: string;
 }
 
 export const submitAttendance = async (attendance: AttendanceRequest): Promise<Attendee> => {
-  const { data } = await api.post('/attendance', attendance);
-  console.log('submitAttendance: ', data);
+  console.log('submitAtt: ', attendance)
+  const { data } = await api.post('/training-sessions/attendance', attendance);
   return data;
 };
 
 export const getSessionAttendance = async (sessionId: string): Promise<Attendee[]> => {
-  const { data } = await api.get(`/${sessionId}/attendees`);
+  const { data } = await api.get(`/training-sessions/${sessionId}/attendees`);
   return data.data;
 };
 
 export const exportAttendance = async (sessionId: string): Promise<Blob> => {
-  const { data } = await api.get(`/attendance/${sessionId}/export`, {
+  const { data } = await api.get(`/training-sessions/attendance/${sessionId}/export`, {
     responseType: 'blob',
   });
   return data;

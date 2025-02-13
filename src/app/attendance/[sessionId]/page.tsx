@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AttendanceSubmission } from "@/types/attendance";
 import { submitAttendance } from "@/lib/api/training";
 
 export default function AttendancePage() {
@@ -37,11 +36,7 @@ export default function AttendancePage() {
     };
 
     try {
-      console.log('submission: ', submission);
-      const response = await submitAttendance(submission);
-
-      console.log('response: ', response);
-
+      await submitAttendance(submission);
       setSubmitted(true);
     } catch (error) {
       console.error('Error submitting attendance:', error);

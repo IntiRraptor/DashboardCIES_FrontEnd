@@ -1,4 +1,4 @@
-export interface TrainingSession {
+export interface TrainingSessionShow {
   _id: string;
   id: string;
   title: string;
@@ -16,6 +16,34 @@ export interface TrainingSession {
   trainingSessionId: string;
 }
 
+export interface MedicalEquipment {
+  code: string;
+  brand: string;
+  model: string;
+  series: string;
+}
+
+export interface TrainingSession {
+  id?: string;
+  title: string;
+  date: string;
+  regional: string;
+  serviceType: string;
+  medicalEquipment: MedicalEquipment;
+  status: "scheduled" | "completed";
+  attendeeCount?: number;
+}
+
+export interface TSS {
+  _id?: string;
+  title: string;
+  date: string;
+  regional: string;
+  serviceType: string;
+  medicalEquipment: MedicalEquipment;
+  status: "scheduled" | "completed";
+  attendeeCount?: number;
+}
 export interface Session {
   _id: string;
   status: "scheduled" | "completed";
@@ -38,14 +66,17 @@ export interface Attendee {
   role: string;
   phone: string;
   email: string;
-  submissionDateTime?: string;
   trainingSessionId: string;
+  submissionDateTime?: string;
 }
 
-export interface TrainingSessionFormData
-  extends Omit<
-    TrainingSession,
-    "id" | "createdAt" | "updatedAt" | "qrCodeUrl"
-  > {
-  id?: string;
+export interface TrainingSessionFormData {
+  title: string;
+  date: string;
+  regional: string;
+  serviceType: string;
+  medicalEquipment: string;
+  brand: string;
+  model: string;
+  series: string;
 }

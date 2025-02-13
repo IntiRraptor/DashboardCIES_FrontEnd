@@ -27,15 +27,12 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DownloadIcon, EyeIcon, TrashIcon } from "lucide-react";
-import { TrainingSession, Attendee } from "@/types/training";
+import { TrainingSession, Attendee, TSS } from "@/types/training";
 import * as QRCode from "qrcode.react";
 
 export default function AsistenciaPage() {
-  const [trainingSessions, setTrainingSessions] = useState<TrainingSession[]>(
-    []
-  );
-  const [selectedSession, setSelectedSession] =
-    useState<TrainingSession | null>(null);
+  const [trainingSessions, setTrainingSessions] = useState<TSS[]>([]);
+  const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,9 +53,7 @@ export default function AsistenciaPage() {
 
   const loadAttendees = async (sessionId: string) => {
     try {
-      console.log("sessionId: ", sessionId);
       const data = await getSessionAttendance(sessionId);
-      console.log("data: ", data);
       setAttendees(data);
     } catch (error) {
       toast.error("Error al cargar los asistentes");
@@ -127,8 +122,8 @@ export default function AsistenciaPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {trainingSessions.map((session, index) => (
-                <TableRow key={index}>
+              {trainingSessions.map((session) => (
+                <TableRow key={session._id}>
                   <TableCell>
                     {format(new Date(session.date), "PPP", { locale: es })}
                   </TableCell>
@@ -144,7 +139,7 @@ export default function AsistenciaPage() {
                             size="icon"
                             onClick={() => {
                               setSelectedSession(session);
-                              loadAttendees(session._id);
+                              loadAttendees(session._id!);
                             }}
                           >
                             <EyeIcon className="h-4 w-4" />
@@ -205,13 +200,13 @@ export default function AsistenciaPage() {
                           </DialogHeader>
                           <div className="flex justify-center">
                             <QRCode.QRCodeSVG
-                              value={generateQrCodeUrl(session._id)}
+                              value={generateQrCodeUrl(session._id!)}
                               size={200}
                             />
                           </div>
                           <div className="mt-4 text-center">
                             <a
-                              href={generateQrCodeUrl(session._id)}
+                              href={generateQrCodeUrl(session._id!)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-500 underline"
@@ -224,7 +219,7 @@ export default function AsistenciaPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteSession(session._id)}
+                        onClick={() => handleDeleteSession(session._id!)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <TrashIcon className="h-4 w-4 mr-2" />
