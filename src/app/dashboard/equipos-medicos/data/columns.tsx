@@ -1,10 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { categories, brands, models } from "../data/data";
-import { Equipment, equipmentSchema } from "../data/schema";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 
 // Define la interfaz para los datos de equipo
