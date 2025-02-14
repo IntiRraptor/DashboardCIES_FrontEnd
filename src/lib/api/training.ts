@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { TrainingSession, TrainingSessionFormData, Attendee } from '../../types/training';
 
-const BASE_URL = 'http://localhost:4000/api';
-// const BASE_URL = "https://dashboardciesbackend-production-fee2.up.railway.app/api";
+// const BASE_URL = 'http://localhost:4000/api';
+const BASE_URL = "https://dashboardciesbackend-production-fee2.up.railway.app/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
