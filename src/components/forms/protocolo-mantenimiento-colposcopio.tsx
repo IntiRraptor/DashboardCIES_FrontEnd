@@ -140,6 +140,14 @@ export default function FormularioMantenimientoColoscopio({
     observaciones: "",
     firmaMantenimiento: "",
     firmaOperador: "",
+    limpieza: {
+      limpiezaMemoria: false,
+      desenpolvamientoInterno: false,
+      limpiezaContactoresElectricos: false,
+      revisionModulosTarjetas: false,
+      limpiezaPanelesControlTeclado: false,
+      revisionInterfaces: false,
+    },
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
@@ -421,6 +429,90 @@ export default function FormularioMantenimientoColoscopio({
                 `
                   )
                   .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">4. INSPECCIÓN ACCESORIOS</div>
+              <div class="grid">
+                ${Object.entries(formData.inspeccionAccesorios.impresora)
+                  .map(
+                    ([key, value]) => `
+                  <div class="item">
+                    <span>${key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}:</span>
+                    <span>${value ? "Sí" : "No"}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">5. LIMPIEZA (Solo si fuese necesario) (2da Columna mantenimiento anual)</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="limpiezaMemoria">Limpieza de memoria (si fuese necesario):</Label>
+                  <YesNoOptions
+                    id="limpiezaMemoria"
+                    value={formData.limpieza.limpiezaMemoria}
+                    onChange={(value) =>
+                      handleCheckboxChange("limpieza", "limpiezaMemoria", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="desenpolvamientoInterno">Desenpolvamiento interno:</Label>
+                  <YesNoOptions
+                    id="desenpolvamientoInterno"
+                    value={formData.limpieza.desenpolvamientoInterno}
+                    onChange={(value) =>
+                      handleCheckboxChange("limpieza", "desenpolvamientoInterno", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="limpiezaContactoresElectricos">Limpieza de contactores eléctricos:</Label>
+                  <YesNoOptions
+                    id="limpiezaContactoresElectricos"
+                    value={formData.limpieza.limpiezaContactoresElectricos}
+                    onChange={(value) =>
+                      handleCheckboxChange("limpieza", "limpiezaContactoresElectricos", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="revisionModulosTarjetas">Revisión de módulos y tarjetas:</Label>
+                  <YesNoOptions
+                    id="revisionModulosTarjetas"
+                    value={formData.limpieza.revisionModulosTarjetas}
+                    onChange={(value) =>
+                      handleCheckboxChange("limpieza", "revisionModulosTarjetas", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="limpiezaPanelesControlTeclado">Limpieza de Paneles de Control y Teclado:</Label>
+                  <YesNoOptions
+                    id="limpiezaPanelesControlTeclado"
+                    value={formData.limpieza.limpiezaPanelesControlTeclado}
+                    onChange={(value) =>
+                      handleCheckboxChange("limpieza", "limpiezaPanelesControlTeclado", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="revisionInterfaces">Revisión de Interfaces:</Label>
+                  <YesNoOptions
+                    id="revisionInterfaces"
+                    value={formData.limpieza.revisionInterfaces}
+                    onChange={(value) =>
+                      handleCheckboxChange("limpieza", "revisionInterfaces", value)
+                    }
+                  />
+                </div>
               </div>
             </div>
 
@@ -722,6 +814,72 @@ export default function FormularioMantenimientoColoscopio({
                 </div>
               )
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <h2 className="text-lg font-semibold mb-2">5. LIMPIEZA (Solo si fuese necesario) (2da Columna mantenimiento anual)</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="limpiezaMemoria">Limpieza de memoria (si fuese necesario):</Label>
+            <YesNoOptions
+              id="limpiezaMemoria"
+              value={formData.limpieza.limpiezaMemoria}
+              onChange={(value) =>
+                handleCheckboxChange("limpieza", "limpiezaMemoria", value)
+              }
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <Label htmlFor="desenpolvamientoInterno">Desenpolvamiento interno:</Label>
+            <YesNoOptions
+              id="desenpolvamientoInterno"
+              value={formData.limpieza.desenpolvamientoInterno}
+              onChange={(value) =>
+                handleCheckboxChange("limpieza", "desenpolvamientoInterno", value)
+              }
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <Label htmlFor="limpiezaContactoresElectricos">Limpieza de contactores eléctricos:</Label>
+            <YesNoOptions
+              id="limpiezaContactoresElectricos"
+              value={formData.limpieza.limpiezaContactoresElectricos}
+              onChange={(value) =>
+                handleCheckboxChange("limpieza", "limpiezaContactoresElectricos", value)
+              }
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <Label htmlFor="revisionModulosTarjetas">Revisión de módulos y tarjetas:</Label>
+            <YesNoOptions
+              id="revisionModulosTarjetas"
+              value={formData.limpieza.revisionModulosTarjetas}
+              onChange={(value) =>
+                handleCheckboxChange("limpieza", "revisionModulosTarjetas", value)
+              }
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <Label htmlFor="limpiezaPanelesControlTeclado">Limpieza de Paneles de Control y Teclado:</Label>
+            <YesNoOptions
+              id="limpiezaPanelesControlTeclado"
+              value={formData.limpieza.limpiezaPanelesControlTeclado}
+              onChange={(value) =>
+                handleCheckboxChange("limpieza", "limpiezaPanelesControlTeclado", value)
+              }
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <Label htmlFor="revisionInterfaces">Revisión de Interfaces:</Label>
+            <YesNoOptions
+              id="revisionInterfaces"
+              value={formData.limpieza.revisionInterfaces}
+              onChange={(value) =>
+                handleCheckboxChange("limpieza", "revisionInterfaces", value)
+              }
+            />
           </div>
         </div>
       </section>

@@ -71,6 +71,24 @@ export default function FormularioMantenimiento() {
             <Input id="ns" />
           </div>
           <div>
+            <Label htmlFor="voltajeBateria">Voltaje de batería:</Label>
+            <Input
+              id="voltajeBateria"
+              type="number"
+              step="0.01"
+              className="w-40"
+            />
+          </div>
+          <div>
+            <Label htmlFor="tipoFusible">Tipo de Fusible:</Label>
+            <Input
+              id="tipoFusible"
+              type="text"
+              pattern="[A-Za-z0-9]+"
+              className="w-40"
+            />
+          </div>
+          <div>
             <Label>Garantía:</Label>
             <YesNoOptions id="garantia" defaultValue="no" />
           </div>

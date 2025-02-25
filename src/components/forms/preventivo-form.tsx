@@ -39,6 +39,7 @@ const formSchema = z.object({
   inspeccionElectrica: z.array(z.object({
     descripcion: z.string(),
     realizado: z.boolean(),
+    valor: z.string(),
   })),
   inspeccionFuncional: z.array(z.object({
     descripcion: z.string(),
@@ -118,9 +119,9 @@ export function PreventivoForm({
       ],
       inspeccionElectrica: [
         { descripcion: "Baterías en buen estado.", realizado: false },
-        { descripcion: "Voltaje Batería.", realizado: false },
+        { descripcion: "Voltaje Batería", realizado: false, valor: "" },
         { descripcion: "Fusibles en buen estado.", realizado: false },
-        { descripcion: "Tipos de Fusibles", realizado: false },
+        { descripcion: "Tipos de Fusibles", realizado: false, valor: "" },
       ],
       inspeccionFuncional: [
         { descripcion: "Encendido e inicialización correcto.", realizado: false },
@@ -324,7 +325,7 @@ export function PreventivoForm({
                 ${data.inspeccionElectrica.map(item => `
                   <div class="item">
                     <span>${item.descripcion}</span>
-                    <span>${item.realizado ? 'Sí' : 'No'}</span>
+                    <span>${item.descripcion === "Voltaje Batería" ? item.valor : item.realizado ? 'Sí' : 'No'}</span>
                   </div>
                 `).join('')}
               </div>
@@ -595,11 +596,29 @@ export function PreventivoForm({
             {form.watch("inspeccionElectrica").map((item, index) => (
               <div key={index} className="flex items-center justify-between mb-2">
                 <span>{item.descripcion}</span>
-                <YesNoOptions
-                  id={`inspeccionElectrica-${index}`}
-                  value={item.realizado}
-                  onChange={(value) => form.setValue(`inspeccionElectrica.${index}.realizado`, value)}
-                />
+                {item.descripcion === "Voltaje Batería" ? (
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.valor || ""}
+                    onChange={(e) => form.setValue(`inspeccionElectrica.${index}.valor`, e.target.value)}
+                    className="w-40"
+                  />
+                ) : item.descripcion === "Tipos de Fusibles" ? (
+                  <Input
+                    type="text"
+                    pattern="[A-Za-z0-9]+"
+                    value={item.valor || ""}
+                    onChange={(e) => form.setValue(`inspeccionElectrica.${index}.valor`, e.target.value)}
+                    className="w-40"
+                  />
+                ) : (
+                  <YesNoOptions
+                    id={`inspeccionElectrica-${index}`}
+                    value={item.realizado}
+                    onChange={(value) => form.setValue(`inspeccionElectrica.${index}.realizado`, value)}
+                  />
+                )}
               </div>
             ))}
           </div>

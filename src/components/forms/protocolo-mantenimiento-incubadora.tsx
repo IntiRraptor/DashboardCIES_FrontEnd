@@ -113,7 +113,7 @@ export default function FormularioMantenimientoIncubadora({
       nivelLumenes: "",
     },
     inspeccionAccesorios: {
-      cantidadAccesorios: "1",
+      cantidadAccesorios: "2",
       accesorios: [
         {
           modelo: "",
@@ -125,6 +125,16 @@ export default function FormularioMantenimientoIncubadora({
           limpiezaAdecuada: false,
           sensorSinDaños: false,
         },
+        {
+          modelo: "",
+          ns: "",
+          pruebaFuncionamiento: false,
+          interfazSinDaños: false,
+          cableConexionSinDaños: false,
+          conectorSinDaños: false,
+          limpiezaAdecuada: false,
+          sensorSinDaños: false,
+        }
       ],
     },
     limpieza: {
@@ -186,6 +196,32 @@ export default function FormularioMantenimientoIncubadora({
     );
     setIsFormValid(isValid);
   }, [formData]);
+
+  useEffect(() => {
+    const cantidadAccesorios = parseInt(formData.inspeccionAccesorios.cantidadAccesorios) || 2;
+    if (cantidadAccesorios >= 1 && cantidadAccesorios <= 9) {
+      const accesoriosActuales = formData.inspeccionAccesorios.accesorios;
+      const nuevoAccesorios = Array(cantidadAccesorios).fill(null).map((_, index) => 
+        accesoriosActuales[index] || {
+          modelo: "",
+          ns: "",
+          pruebaFuncionamiento: false,
+          interfazSinDaños: false,
+          cableConexionSinDaños: false,
+          conectorSinDaños: false,
+          limpiezaAdecuada: false,
+          sensorSinDaños: false,
+        }
+      );
+      setFormData(prevState => ({
+        ...prevState,
+        inspeccionAccesorios: {
+          ...prevState.inspeccionAccesorios,
+          accesorios: nuevoAccesorios
+        }
+      }));
+    }
+  }, [formData.inspeccionAccesorios.cantidadAccesorios]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

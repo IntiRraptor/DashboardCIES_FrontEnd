@@ -266,6 +266,55 @@ export default function FormularioMantenimientoEcografo({
   ) => {
     const { name, value } = e.target;
     
+    if (name === 'inspeccionAccesorios.cantidadTransductores') {
+      const numTransductores = parseInt(value) || 0;
+      const transductores = Array(numTransductores).fill(null).map((_, i) => ({
+        modelo: "",
+        ns: "",
+        ca: "",
+        pruebasCeldas: false,
+        conectorSinDaños: false,
+        interfazGoma: false,
+        limpiezaAdecuada: false,
+        cableConexion: false,
+      }));
+      
+      setFormData(prevState => ({
+        ...prevState,
+        inspeccionAccesorios: {
+          ...prevState.inspeccionAccesorios,
+          cantidadTransductores: value,
+          transductores,
+        }
+      }));
+      return;
+    }
+
+    if (name === 'inspeccionAccesorios.cantidadImpresoras') {
+      const numImpresoras = parseInt(value) || 0;
+      const impresoras = Array(numImpresoras).fill(null).map((_, i) => ({
+        codigo: "",
+        modelo: "",
+        ns: "",
+        impresionOptima: false,
+        nivelBrillo: "",
+        nivelContraste: "",
+        tipoPapel: "",
+        conexion: "",
+        feedActivado: false,
+      }));
+      
+      setFormData(prevState => ({
+        ...prevState,
+        inspeccionAccesorios: {
+          ...prevState.inspeccionAccesorios,
+          cantidadImpresoras: value,
+          impresoras,
+        }
+      }));
+      return;
+    }
+    
     if (name.includes('.')) {
       const [section, field] = name.split('.');
       setFormData((prevState) => ({

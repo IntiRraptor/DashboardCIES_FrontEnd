@@ -117,29 +117,63 @@ export default function FormularioMantenimientoVentiladorCPAP({
       pruebaFugasCircuito: false,
     },
     inspeccionAccesorios: {
-      cantidadAccesorios: "1",
-      accesorios: [
+      cantidadVaporizadores: "2",
+      humidificadorActivo: false,
+      vaporizadores: [
         {
           modelo: "",
           ns: "",
-          pruebaFuncionamiento: false,
-          interfazSinDaños: false,
-          cableConexionSinDaños: false,
-          conectorSinDaños: false,
-          limpiezaAdecuada: false,
-          sensorSinDaños: false,
+          perillaAjusteFuncionamiento: false,
+          indicadorNivelBuenEstado: false,
+          empaquesConexionBuenEstado: false,
+          puertoCargaBuenEstado: false,
+          perillaSujecionBuenEstado: false,
+          puertoDescargaBuenEstado: false,
         },
+        {
+          modelo: "",
+          ns: "",
+          perillaAjusteFuncionamiento: false,
+          indicadorNivelBuenEstado: false,
+          empaquesConexionBuenEstado: false,
+          puertoCargaBuenEstado: false,
+          perillaSujecionBuenEstado: false,
+          puertoDescargaBuenEstado: false,
+        }
       ],
+      humidificador: {
+        modelo: "",
+        ns: "",
+        ca: "",
+        pruebaCalentamientoSatisfactoria: false,
+        botonerillasBuenEstado: false,
+        sensorTemperatura: false,
+        camaraHumBuenEstado: false,
+        conexionElectricaSegura: false,
+      },
+      compresor: {
+        modelo: "",
+        ns: "",
+        ca: "",
+        pruebaFugasSatisfactoria: false,
+        botonerillasBuenEstado: false,
+        conectoresSalidaBuenEstado: false,
+        filtrosAireLimpios: false,
+        cableConexionSinDanos: false,
+      }
     },
-    limpieza: {
-      limpiezaExterna: false,
-      limpiezaInterna: false,
-      limpiezaFiltros: false,
-      limpiezaCircuito: false,
-      limpiezaSensores: false,
-      desinfeccionComponentes: false,
-      cambioFiltros: false,
-      lubricacionPartes: false,
+    calibracionReemplazoEmpaques: {
+      calibracionFlujos: false,
+      desenpolvamientoInterno: false,
+      calibracionPresiones: false,
+      revisionModulosTarjetas: false,
+      calibracionVolumenes: false,
+      revisionInterfaces: false,
+      ajustesInterfaz: false,
+      revisionManometros: false,
+      calibracionValvulas: false,
+      revisionFlujometros: false,
+      limpiezaContactoresElectricos: false,
     },
     observaciones: "",
     firmaMantenimiento: "",
@@ -191,6 +225,32 @@ export default function FormularioMantenimientoVentiladorCPAP({
     setIsFormValid(isValid);
   }, [formData]);
 
+  useEffect(() => {
+    const cantidadVaporizadores = parseInt(formData.inspeccionAccesorios.cantidadVaporizadores) || 2;
+    if (cantidadVaporizadores >= 1 && cantidadVaporizadores <= 9) {
+      const vaporizadoresActuales = formData.inspeccionAccesorios.vaporizadores;
+      const nuevoVaporizadores = Array(cantidadVaporizadores).fill(null).map((_, index) => 
+        vaporizadoresActuales[index] || {
+          modelo: "",
+          ns: "",
+          perillaAjusteFuncionamiento: false,
+          indicadorNivelBuenEstado: false,
+          empaquesConexionBuenEstado: false,
+          puertoCargaBuenEstado: false,
+          perillaSujecionBuenEstado: false,
+          puertoDescargaBuenEstado: false,
+        }
+      );
+      setFormData(prevState => ({
+        ...prevState,
+        inspeccionAccesorios: {
+          ...prevState.inspeccionAccesorios,
+          vaporizadores: nuevoVaporizadores
+        }
+      }));
+    }
+  }, [formData.inspeccionAccesorios.cantidadVaporizadores]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -227,161 +287,56 @@ export default function FormularioMantenimientoVentiladorCPAP({
     }));
   };
 
-  const handleAccesorioChange = (index: number, field: string, value: any) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      inspeccionAccesorios: {
-        ...prevState.inspeccionAccesorios,
-        accesorios: prevState.inspeccionAccesorios.accesorios.map((acc, i) =>
-          i === index ? { ...acc, [field]: value } : acc
-        ),
-      },
-    }));
+  const handleAccesorioChange = (
+    index: number | string,
+    field: string,
+    value: string | boolean
+  ) => {
+    setFormData((prevState) => {
+      if (typeof index === 'number') {
+        // Manejar cambios en vaporizadores
+        const vaporizadoresActualizados = [...prevState.inspeccionAccesorios.vaporizadores];
+        vaporizadoresActualizados[index] = {
+          ...vaporizadoresActualizados[index],
+          [field]: value,
+        };
+        return {
+          ...prevState,
+          inspeccionAccesorios: {
+            ...prevState.inspeccionAccesorios,
+            vaporizadores: vaporizadoresActualizados,
+          },
+        };
+      } else if (index === 'humidificador' || index === 'compresor') {
+        // Manejar cambios en humidificador o compresor
+        return {
+          ...prevState,
+          inspeccionAccesorios: {
+            ...prevState.inspeccionAccesorios,
+            [index]: {
+              ...prevState.inspeccionAccesorios[index],
+              [field]: value,
+            },
+          },
+        };
+      }
+      return prevState;
+    });
   };
 
-  const handleSubmit = () => {
-    const submittedData = {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formDataToSubmit = {
       ...formData,
-      tipo: "Preventivo",
       equipo: formData.codigoActivo,
-      costo: 0,
-      estado: "Programado",
-      typeForm: "Protocolo de Mantenimiento MaqAnes Vent CPAP.",
-      regional: region,
-      ubicacion: ubicacion,
+      fecha: format(new Date(), "yyyy-MM-dd"),
+      proximaFecha: format(addMonths(new Date(), 6), "yyyy-MM-dd"),
     };
-    onSubmit(submittedData);
-    handlePrint();
+    onSubmit(formDataToSubmit);
   };
 
   const handlePrint = () => {
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Formulario de Mantenimiento</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              h1, h2 { text-align: center; }
-              .section { margin-bottom: 20px; }
-              .section-title { font-weight: bold; margin-bottom: 10px; }
-              .item { display: flex; justify-content: space-between; }
-              .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
-              .signature-line { text-align: center; }
-            </style>
-          </head>
-          <body>
-            <img src="${logoCies}" alt="Logo CIES" style="width: 100px; display: block; margin: 0 auto;" />
-            <h1>COMPROBANTE DE MANTENIMIENTO PREVENTIVO PLANIFICADO</h1>
-            <h2>VENTILADOR CPAP</h2>
-            <div class="section">
-              <div class="section-title">DATOS DEL EQUIPO</div>
-              <div class="item"><span>Código de Activo:</span><span>${formData.codigoActivo}</span></div>
-              <div class="item"><span>Marca:</span><span>${formData.marca}</span></div>
-              <div class="item"><span>Modelo:</span><span>${formData.modelo}</span></div>
-              <div class="item"><span>N/S:</span><span>${formData.ns}</span></div>
-              <div class="item"><span>Garantía:</span><span>${formData.garantia ? "Sí" : "No"}</span></div>
-              <div class="item"><span>Tipo:</span><span>${formData.tipo}</span></div>
-              <div class="item"><span>Sucursal:</span><span>${formData.sucursal}</span></div>
-              <div class="item"><span>Regional:</span><span>${formData.regional}</span></div>
-              <div class="item"><span>Ubicación:</span><span>${formData.lugar}</span></div>
-              <div class="item"><span>Fecha:</span><span>${formData.fecha}</span></div>
-            </div>
-            <div class="section">
-              <div class="section-title">1. INSPECCIÓN VISUAL</div>
-              ${Object.entries(formData.inspeccionVisual)
-                .map(
-                  ([key, value]) => `
-                <div class="item">
-                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
-                  <span>${value ? "Sí" : "No"}</span>
-                </div>
-              `
-                )
-                .join("")}
-            </div>
-            <div class="section">
-              <div class="section-title">2. INSPECCIÓN ELÉCTRICA</div>
-              ${Object.entries(formData.inspeccionElectrica)
-                .map(
-                  ([key, value]) => `
-                <div class="item">
-                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
-                  <span>${value ? "Sí" : "No"}</span>
-                </div>
-              `
-                )
-                .join("")}
-            </div>
-            <div class="section">
-              <div class="section-title">3. INSPECCIÓN FUNCIONAL</div>
-              ${Object.entries(formData.inspeccionFuncional)
-                .map(
-                  ([key, value]) => `
-                <div class="item">
-                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
-                  <span>${value ? "Sí" : "No"}</span>
-                </div>
-              `
-                )
-                .join("")}
-            </div>
-            <div class="section">
-              <div class="section-title">4. INSPECCIÓN ACCESORIOS</div>
-              ${formData.inspeccionAccesorios.accesorios
-                .map(
-                  (accesorio, index) => `
-                <div class="item">
-                  <span>ACCESORIO ${index + 1}</span>
-                </div>
-                ${Object.entries(accesorio)
-                  .map(
-                    ([key, value]) => `
-                  <div class="item">
-                    <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
-                    <span>${value ? "Sí" : "No"}</span>
-                  </div>
-                `
-                  )
-                  .join("")}
-              `
-                )
-                .join("")}
-            </div>
-            <div class="section">
-              <div class="section-title">5. LIMPIEZA</div>
-              ${Object.entries(formData.limpieza)
-                .map(
-                  ([key, value]) => `
-                <div class="item">
-                  <span>${key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}:</span>
-                  <span>${value ? "Sí" : "No"}</span>
-                </div>
-              `
-                )
-                .join("")}
-            </div>
-            <div class="section">
-              <div class="section-title">OBSERVACIONES</div>
-              <p>${formData.observaciones}</p>
-            </div>
-            <div class="signatures">
-              <div class="signature-line">
-                <p>${formData.firmaMantenimiento}</p>
-                <p>Firma y Sello Mantenimiento</p>
-              </div>
-              <div class="signature-line">
-                <p>${formData.firmaOperador}</p>
-                <p>Firma y Sello Operador o encargado</p>
-              </div>
-            </div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
+    window.print();
   };
 
   return (
@@ -564,99 +519,283 @@ export default function FormularioMantenimientoVentiladorCPAP({
         <h2 className="text-lg font-semibold mb-2">4. INSPECCIÓN ACCESORIOS</h2>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <Label htmlFor="cantidadAccesorios">Cantidad de accesorios:</Label>
+            <Label htmlFor="cantidadVaporizadores">Cantidad de vaporizadores:</Label>
             <Input
-              id="cantidadAccesorios"
-              name="inspeccionAccesorios.cantidadAccesorios"
+              id="cantidadVaporizadores"
+              name="inspeccionAccesorios.cantidadVaporizadores"
               type="number"
               min="1"
-              max="6"
-              value={formData.inspeccionAccesorios.cantidadAccesorios}
+              max="9"
+              value={formData.inspeccionAccesorios.cantidadVaporizadores}
               onChange={handleInputChange}
             />
           </div>
+          <div>
+            <Label>Humidificador activo:</Label>
+            <YesNoOptions
+              id="humidificadorActivo"
+              value={formData.inspeccionAccesorios.humidificadorActivo}
+              onChange={(value) =>
+                handleCheckboxChange("inspeccionAccesorios", "humidificadorActivo", value)
+              }
+            />
+          </div>
         </div>
-        {formData.inspeccionAccesorios.accesorios
-          .slice(0, parseInt(formData.inspeccionAccesorios.cantidadAccesorios))
-          .map((accesorio, index) => (
+
+        {formData.inspeccionAccesorios.vaporizadores
+          .slice(0, parseInt(formData.inspeccionAccesorios.cantidadVaporizadores))
+          .map((vaporizador, index) => (
             <div key={index} className="border p-4 mb-4 rounded">
-              <h3 className="font-semibold mb-2">ACCESORIO {index + 1}</h3>
+              <h3 className="font-semibold mb-2">VAPORIZADOR {index + 1}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor={`accesorio-${index}-modelo`}>Modelo:</Label>
+                  <Label htmlFor={`vaporizador-${index}-modelo`}>Modelo:</Label>
                   <Input
-                    id={`accesorio-${index}-modelo`}
-                    value={accesorio.modelo}
+                    id={`vaporizador-${index}-modelo`}
+                    value={vaporizador.modelo}
                     onChange={(e) =>
                       handleAccesorioChange(index, "modelo", e.target.value)
                     }
                   />
                 </div>
                 <div>
-                  <Label htmlFor={`accesorio-${index}-ns`}>N/S:</Label>
+                  <Label htmlFor={`vaporizador-${index}-ns`}>N/S:</Label>
                   <Input
-                    id={`accesorio-${index}-ns`}
-                    value={accesorio.ns}
+                    id={`vaporizador-${index}-ns`}
+                    value={vaporizador.ns}
                     onChange={(e) =>
                       handleAccesorioChange(index, "ns", e.target.value)
                     }
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mt-2">
-                {Object.entries(accesorio).map(([key, value]) => {
-                  if (typeof value === "boolean") {
-                    return (
-                      <div
-                        key={key}
-                        className="flex justify-between items-center"
-                      >
-                        <Label htmlFor={`accesorio-${index}-${key}`}>
-                          {key
-                            .replace(/([A-Z])/g, " $1")
-                            .replace(/^./, (str) => str.toUpperCase())}
-                          :
-                        </Label>
-                        <YesNoOptions
-                          id={`accesorio-${index}-${key}`}
-                          value={value}
-                          onChange={(newValue) =>
-                            handleAccesorioChange(index, key, newValue)
-                          }
-                        />
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
+                <div className="flex justify-between items-center">
+                  <Label>Perilla de Ajuste en funcionamiento:</Label>
+                  <YesNoOptions
+                    id={`vaporizador-${index}-perillaAjuste`}
+                    value={vaporizador.perillaAjusteFuncionamiento}
+                    onChange={(value) =>
+                      handleAccesorioChange(index, "perillaAjusteFuncionamiento", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label>Indicador de Nivel en buen estado:</Label>
+                  <YesNoOptions
+                    id={`vaporizador-${index}-indicadorNivel`}
+                    value={vaporizador.indicadorNivelBuenEstado}
+                    onChange={(value) =>
+                      handleAccesorioChange(index, "indicadorNivelBuenEstado", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label>Empaques de conexión en buen estado:</Label>
+                  <YesNoOptions
+                    id={`vaporizador-${index}-empaquesConexion`}
+                    value={vaporizador.empaquesConexionBuenEstado}
+                    onChange={(value) =>
+                      handleAccesorioChange(index, "empaquesConexionBuenEstado", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label>Puerto de carga en buen estado:</Label>
+                  <YesNoOptions
+                    id={`vaporizador-${index}-puertoCarga`}
+                    value={vaporizador.puertoCargaBuenEstado}
+                    onChange={(value) =>
+                      handleAccesorioChange(index, "puertoCargaBuenEstado", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label>Perilla de sujeción en buen estado:</Label>
+                  <YesNoOptions
+                    id={`vaporizador-${index}-perillaSujecion`}
+                    value={vaporizador.perillaSujecionBuenEstado}
+                    onChange={(value) =>
+                      handleAccesorioChange(index, "perillaSujecionBuenEstado", value)
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label>Puerto de descarga buen estado:</Label>
+                  <YesNoOptions
+                    id={`vaporizador-${index}-puertoDescarga`}
+                    value={vaporizador.puertoDescargaBuenEstado}
+                    onChange={(value) =>
+                      handleAccesorioChange(index, "puertoDescargaBuenEstado", value)
+                    }
+                  />
+                </div>
               </div>
             </div>
           ))}
-      </section>
 
-      <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">
-          5. LIMPIEZA (Solo si fuese necesario) (2da Columna mantenimiento
-          anual)
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
-          {Object.entries(formData.limpieza).map(([key, value]) => (
-            <div key={key} className="flex justify-between items-center">
-              <Label htmlFor={`limpieza-${key}`}>
-                {key
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (str) => str.toUpperCase())}
-                :
-              </Label>
-              <YesNoOptions
-                id={`limpieza-${key}`}
-                value={value}
-                onChange={(newValue) =>
-                  handleCheckboxChange("limpieza", key, newValue)
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">HUMIDIFICADOR</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Modelo:</Label>
+              <Input
+                value={formData.inspeccionAccesorios.humidificador.modelo}
+                onChange={(e) =>
+                  handleAccesorioChange("humidificador", "modelo", e.target.value)
                 }
               />
             </div>
-          ))}
+            <div>
+              <Label>N/S:</Label>
+              <Input
+                value={formData.inspeccionAccesorios.humidificador.ns}
+                onChange={(e) =>
+                  handleAccesorioChange("humidificador", "ns", e.target.value)
+                }
+              />
+            </div>
+            <div>
+              <Label>C.A.:</Label>
+              <Input
+                value={formData.inspeccionAccesorios.humidificador.ca}
+                onChange={(e) =>
+                  handleAccesorioChange("humidificador", "ca", e.target.value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Prueba de calentamiento satisfactoria:</Label>
+              <YesNoOptions
+                id="humidificador-calentamiento"
+                value={formData.inspeccionAccesorios.humidificador.pruebaCalentamientoSatisfactoria}
+                onChange={(value) =>
+                  handleAccesorioChange("humidificador", "pruebaCalentamientoSatisfactoria", value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Botones, perilla en buen estado:</Label>
+              <YesNoOptions
+                id="humidificador-botones"
+                value={formData.inspeccionAccesorios.humidificador.botonerillasBuenEstado}
+                onChange={(value) =>
+                  handleAccesorioChange("humidificador", "botonerillasBuenEstado", value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Sensor de temperatura:</Label>
+              <YesNoOptions
+                id="humidificador-sensor"
+                value={formData.inspeccionAccesorios.humidificador.sensorTemperatura}
+                onChange={(value) =>
+                  handleAccesorioChange("humidificador", "sensorTemperatura", value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Cámara de hum en buen estado:</Label>
+              <YesNoOptions
+                id="humidificador-camara"
+                value={formData.inspeccionAccesorios.humidificador.camaraHumBuenEstado}
+                onChange={(value) =>
+                  handleAccesorioChange("humidificador", "camaraHumBuenEstado", value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Conexión eléctrica segura:</Label>
+              <YesNoOptions
+                id="humidificador-conexion"
+                value={formData.inspeccionAccesorios.humidificador.conexionElectricaSegura}
+                onChange={(value) =>
+                  handleAccesorioChange("humidificador", "conexionElectricaSegura", value)
+                }
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="border p-4 mb-4 rounded">
+          <h3 className="font-semibold mb-2">COMPRESOR</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Modelo:</Label>
+              <Input
+                value={formData.inspeccionAccesorios.compresor.modelo}
+                onChange={(e) =>
+                  handleAccesorioChange("compresor", "modelo", e.target.value)
+                }
+              />
+            </div>
+            <div>
+              <Label>N/S:</Label>
+              <Input
+                value={formData.inspeccionAccesorios.compresor.ns}
+                onChange={(e) =>
+                  handleAccesorioChange("compresor", "ns", e.target.value)
+                }
+              />
+            </div>
+            <div>
+              <Label>C.A.:</Label>
+              <Input
+                value={formData.inspeccionAccesorios.compresor.ca}
+                onChange={(e) =>
+                  handleAccesorioChange("compresor", "ca", e.target.value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Prueba de fugas satisfactoria:</Label>
+              <YesNoOptions
+                id="compresor-fugas"
+                value={formData.inspeccionAccesorios.compresor.pruebaFugasSatisfactoria}
+                onChange={(value) =>
+                  handleAccesorioChange("compresor", "pruebaFugasSatisfactoria", value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Botones, perilla en buen estado:</Label>
+              <YesNoOptions
+                id="compresor-botones"
+                value={formData.inspeccionAccesorios.compresor.botonerillasBuenEstado}
+                onChange={(value) =>
+                  handleAccesorioChange("compresor", "botonerillasBuenEstado", value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Conectores de Salida en buen estado:</Label>
+              <YesNoOptions
+                id="compresor-conectores"
+                value={formData.inspeccionAccesorios.compresor.conectoresSalidaBuenEstado}
+                onChange={(value) =>
+                  handleAccesorioChange("compresor", "conectoresSalidaBuenEstado", value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Filtros de aire limpios:</Label>
+              <YesNoOptions
+                id="compresor-filtros"
+                value={formData.inspeccionAccesorios.compresor.filtrosAireLimpios}
+                onChange={(value) =>
+                  handleAccesorioChange("compresor", "filtrosAireLimpios", value)
+                }
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Label>Cable de conexión sin daños:</Label>
+              <YesNoOptions
+                id="compresor-cable"
+                value={formData.inspeccionAccesorios.compresor.cableConexionSinDanos}
+                onChange={(value) =>
+                  handleAccesorioChange("compresor", "cableConexionSinDanos", value)
+                }
+              />
+            </div>
+          </div>
         </div>
       </section>
 

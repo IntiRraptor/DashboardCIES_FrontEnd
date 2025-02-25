@@ -113,7 +113,7 @@ export default function FormularioMantenimientoElectrobisturi({
       funcionCoagBipolar: false,
     },
     inspeccionAccesorios: {
-      cantidadPedales: "1",
+      cantidadPedales: "2",
       placaNeutraSiliconada: false,
       pedales: [
         {
@@ -124,6 +124,14 @@ export default function FormularioMantenimientoElectrobisturi({
           conectorSinDaños: false,
           limpiezaAdecuada: false,
         },
+        {
+          modelo: "",
+          ns: "",
+          pruebaPeralSatisfactoria: false,
+          cableConexionSinDaños: false,
+          conectorSinDaños: false,
+          limpiezaAdecuada: false,
+        }
       ],
       placaNeutra: {
         modelo: "",
@@ -200,6 +208,30 @@ export default function FormularioMantenimientoElectrobisturi({
     );
     setIsFormValid(isValid);
   }, [formData]);
+
+  useEffect(() => {
+    const cantidadPedales = parseInt(formData.inspeccionAccesorios.cantidadPedales) || 2;
+    if (cantidadPedales >= 1 && cantidadPedales <= 9) {
+      const pedalesActuales = formData.inspeccionAccesorios.pedales;
+      const nuevoPedales = Array(cantidadPedales).fill(null).map((_, index) => 
+        pedalesActuales[index] || {
+          modelo: "",
+          ns: "",
+          pruebaPeralSatisfactoria: false,
+          cableConexionSinDaños: false,
+          conectorSinDaños: false,
+          limpiezaAdecuada: false,
+        }
+      );
+      setFormData(prevState => ({
+        ...prevState,
+        inspeccionAccesorios: {
+          ...prevState.inspeccionAccesorios,
+          pedales: nuevoPedales
+        }
+      }));
+    }
+  }, [formData.inspeccionAccesorios.cantidadPedales]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
