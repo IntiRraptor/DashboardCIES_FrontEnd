@@ -310,9 +310,9 @@ export default function FormularioMantenimientoVentiladorCPAP({
       } else if (index === 'humidificador' || index === 'compresor') {
         // Manejar cambios en humidificador o compresor
         return {
-          ...prevState,
-          inspeccionAccesorios: {
-            ...prevState.inspeccionAccesorios,
+      ...prevState,
+      inspeccionAccesorios: {
+        ...prevState.inspeccionAccesorios,
             [index]: {
               ...prevState.inspeccionAccesorios[index],
               [field]: value,
@@ -607,17 +607,17 @@ export default function FormularioMantenimientoVentiladorCPAP({
                       handleAccesorioChange(index, "puertoCargaBuenEstado", value)
                     }
                   />
-                </div>
+              </div>
                 <div className="flex justify-between items-center">
                   <Label>Perilla de sujeción en buen estado:</Label>
-                  <YesNoOptions
+                        <YesNoOptions
                     id={`vaporizador-${index}-perillaSujecion`}
                     value={vaporizador.perillaSujecionBuenEstado}
                     onChange={(value) =>
                       handleAccesorioChange(index, "perillaSujecionBuenEstado", value)
-                    }
-                  />
-                </div>
+                          }
+                        />
+                      </div>
                 <div className="flex justify-between items-center">
                   <Label>Puerto de descarga buen estado:</Label>
                   <YesNoOptions
@@ -717,7 +717,7 @@ export default function FormularioMantenimientoVentiladorCPAP({
 
         <div className="border p-4 mb-4 rounded">
           <h3 className="font-semibold mb-2">COMPRESOR</h3>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Modelo:</Label>
               <Input

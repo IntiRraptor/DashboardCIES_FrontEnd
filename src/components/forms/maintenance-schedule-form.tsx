@@ -46,6 +46,7 @@ import FormularioMantenimientoAutoclave from "./protocolo-mantenimiento-autoclav
 import { TrainingFormComponent } from "./training-form";
 import { EquipmentDetail } from "@/app/dashboard/equipos-medicos/data/schema";
 import { CorrectiveMaintenanceFormComponent } from "./corrective-maintenance-form";
+import FormularioInstalacionEquipo from "./protocolo-instalacion-equipo";
 
 // Esquema de validación de Zod
 const maintenanceFormSchema = z.object({
@@ -155,7 +156,7 @@ export function MaintenanceScheduleForm({
       case "Correctivo":
         return ["Correctivo 1"];
       case "Instalación":
-        return ["Instalación 1"];
+        return ["Comprobante de Instalación de Equipo Médico"];
       case "Capacitación":
         return ["Capacitación 1"];
       default:
@@ -661,6 +662,16 @@ export function MaintenanceScheduleForm({
                     onSubmit={(data) => handleFormSubmit(data, tab.id)}
                     initialData={formDataMap[tab.id] || []}
                     isEditMode={false}
+                  />
+                )}
+                {tab.type === "Instalación" && (
+                  <FormularioInstalacionEquipo
+                    equipment={equipment}
+                    onSubmit={(data) => handleFormSubmit(data, tab.id)}
+                    initialData={formDataMap[tab.id] || []}
+                    isEditMode={false}
+                    region={form.getValues("region")}
+                    ubicacion={form.getValues("region")}
                   />
                 )}
               </TabsContent>
